@@ -2,14 +2,14 @@
 
 <img src="docs/readme/logo.webp" alt="Superb" width="560">
 
-**Everything you keep checking, in one thin bar along the edge of your screen.**<br>
+**Everything you keep checking, in one menu bar along the edge of your screen.**<br>
 A World of Warcraft: Forever addon for your gold, your bags, your XP rate and your pet.
 
 ![Status: pre-release](https://img.shields.io/badge/status-pre--release-c9a227?style=flat-square) ![WoW: Forever](https://img.shields.io/badge/WoW-Forever-1f4e8c?style=flat-square) ![Interface 16001](https://img.shields.io/badge/interface-16001-555555?style=flat-square) ![Lua](https://img.shields.io/badge/Lua-2C2D72?style=flat-square&logo=lua&logoColor=white) ![Libraries: none](https://img.shields.io/badge/libraries-none-4a7a32?style=flat-square) ![Licence: MIT](https://img.shields.io/badge/licence-MIT-6b6b6b?style=flat-square)
 
 </div>
 
-Superb takes a thin strip at the top or bottom of your screen and moves the rest of the interface out of its way, so nothing ends up hidden behind it. Hover an item for the detail. Right-click it for options. There is no settings window to learn.
+Superb puts a menu bar at the top or bottom of your screen and moves the rest of the interface out of its way, so nothing ends up hidden behind it. Hover an item for the detail. Right-click it for options. There is no settings window to learn.
 
 <table>
 <tr>
