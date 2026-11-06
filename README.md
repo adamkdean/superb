@@ -68,9 +68,7 @@ Small cards drop from the bar for new mail, full bags, worn gear, level-ups and 
 </tr>
 </table>
 
-## More on the way
-
-Every item on the bar is a module, so new ones slot straight in, and more are coming. If there's something you'd like Superb to show you, [request a feature](https://github.com/adamkdean/superb/issues/new?labels=feature) and say what it is and why you want it. Found something broken? [Report a bug](https://github.com/adamkdean/superb/issues/new?labels=bug).
+More items are on the way. Want something on your bar? [Request a feature](https://github.com/adamkdean/superb/issues/new?labels=feature). Found a bug? [Report it](https://github.com/adamkdean/superb/issues/new?labels=bug).
 
 ## Install
 
