@@ -1,0 +1,15 @@
+package-as: Superb
+
+# The addon lives in Superb/. Move it to the top of the zip so the zip holds one Superb folder.
+move-folders:
+  Superb/Superb: Superb
+
+# Only the addon and the licence ship. Everything else is for the repo.
+ignore:
+  - AGENTS.md
+  - CLAUDE.md
+  - README.md
+  - docs
+  - tests
+
+changelog-title: Superb

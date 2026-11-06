@@ -2,7 +2,7 @@
 ## Title: Superb
 ## Notes: A menu bar along the top or bottom of the screen: clock, gold, bags, durability, performance, location, levelling and hunter pet items, and notifications.
 ## Author: Adam K Dean
-## Version: 0.1.0
+## Version: @project-version@
 ## SavedVariables: SuperbDB
 ## SavedVariablesPerCharacter: SuperbLevellingDB
 
