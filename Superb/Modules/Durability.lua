@@ -5,7 +5,7 @@ local S, F = Superb, Superb.Format
 local WARN, LOW = 50, 25
 local lastLowest
 
-S:RegisterNotification("durability", "Repair needed")
+S:RegisterNotification("durability", "Repair needed", "warning")
 
 local function scan()
   local items, cur, max, lowest, lowestItem = {}, 0, 0, nil, nil
@@ -38,7 +38,7 @@ S:RegisterModule({
     local lowest, item = scan()
     if lowest and lastLowest then
       if lowest <= 0 and lastLowest > 0 then
-        S:Notify("durability", "Item broken", item.link .. " is broken. Repair it to use it again.")
+        S:Notify("durability", "Item broken", item.link .. " is broken. Repair it to use it again.", "bad")
       elseif lowest < LOW and lastLowest >= LOW then
         S:Notify("durability", "Repair soon", ("%s is at %d%%."):format(item.link, math.floor(lowest)))
       end

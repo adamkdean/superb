@@ -623,7 +623,7 @@ SlashCmdList.SUPERB = function(msg)
     S:SetTheme(DB.theme)
     S:SetPosition(DB.position)
   else
-    print("Superb: /superb top | bottom | theme <name> | toast [all] | reset | debug. Right-click the bar for the menu.")
+    print("Superb: /superb top | bottom | theme <name> | toast [type|all] | reset | debug. Right-click the bar for the menu.")
     if bar then S:OpenMenu(nil) end
   end
 end

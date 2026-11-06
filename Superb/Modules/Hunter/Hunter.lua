@@ -18,10 +18,10 @@ local DEFAULTS = {
 local def
 local last = {}   -- last seen mood, loyalty, food count and death, for the warnings
 
-S:RegisterNotification("pet.unhappy", "Pet unhappy")
-S:RegisterNotification("pet.lowfood", "Pet food low")
-S:RegisterNotification("pet.loyalty", "Pet loyalty up")
-S:RegisterNotification("pet.died", "Pet died")
+S:RegisterNotification("pet.unhappy", "Pet unhappy", "warning")
+S:RegisterNotification("pet.lowfood", "Pet food low", "warning")
+S:RegisterNotification("pet.loyalty", "Pet loyalty up", "good")
+S:RegisterNotification("pet.died", "Pet died", "bad")
 
 local function cfg()
   local c = S:ModuleDB(ID)

@@ -118,10 +118,12 @@ S.bags[1].items[1] = { itemID = 20, stackCount = 2, quality = 1, hyperlink = "[O
 M.time = M.time + 1
 M.fire("BAG_UPDATE_DELAYED")
 check.eq("low food warning", newest().title.text, "Pet food low")
+check.eq("low food is a warning", M.sounds[#M.sounds].path, "Interface\\AddOns\\Superb\\Sounds\\warning.ogg")
 S.pet.dead = true
 M.time = M.time + 1
 M.fire("UNIT_HEALTH", "pet")
 check.eq("death warning", newest().title.text, "Pet died")
+check.eq("death is bad", M.sounds[#M.sounds].path, "Interface\\AddOns\\Superb\\Sounds\\bad.ogg")
 
 -- Not a hunter: no pet item.
 M.restart(0, {})

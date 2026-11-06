@@ -1,19 +1,35 @@
--- Superb: notifications that drop from the bar, like macOS alerts. Silent, at most three at a time, gone after
--- six seconds or a click. Any addon can send one:
---   Superb:RegisterNotification("kind", "Menu label")   -- once, so the player can turn the kind off
---   Superb:Notify("kind", "Title", "Text")
+-- Superb: notifications that drop from the bar, at most three at a time, gone after six seconds or a click. Each
+-- has a type (info, good, warning, bad) with its own chime; the player can turn sounds off. Any addon can send one:
+--   Superb:RegisterNotification("kind", "Menu label", "good")   -- once; the type defaults to "info"
+--   Superb:Notify("kind", "Title", "Text")                      -- or pass a type to override the kind's
 local S = Superb
 
 local LIFE, FADE_IN, FADE_OUT, MAX, WIDTH = 6, 0.15, 0.6, 3, 280
-local kinds, order = {}, {}
+local kinds, types, order = {}, {}, {}
 local shown, pool = {}, {}
 local def
 
+-- One chime per type, in Sounds/, most serious last. PlaySoundFile and "Master" are what other Forever addons use.
+local TYPES = { "info", "good", "warning", "bad" }
+local SEVERITY = { info = 1, good = 2, warning = 3, bad = 4 }
+local CHIME_PATH, CHIME_GAP = "Interface\\AddOns\\Superb\\Sounds\\%s.ogg", 0.5
+local lastChime, lastSeverity = -math.huge, 0
+
 local function cfg() return S:ModuleDB("notifications") end
 
-function S:RegisterNotification(kind, label)
+-- Rings the type's chime. A burst of cards rings once, unless a later card is more serious than the last chime.
+local function chime(kind)
+  if cfg().sound == false then return end
+  local now, severity = GetTime(), SEVERITY[kind]
+  if now - lastChime < CHIME_GAP and severity <= lastSeverity then return end
+  lastChime, lastSeverity = now, severity
+  PlaySoundFile(CHIME_PATH:format(kind), "Master")
+end
+
+function S:RegisterNotification(kind, label, ntype)
   if kinds[kind] then return end
   kinds[kind] = label
+  types[kind] = SEVERITY[ntype] and ntype or "info"
   order[#order + 1] = kind
 end
 
@@ -107,11 +123,12 @@ local function style(t, theme)
 end
 
 -- Shows a notification if notifications are on and the kind is not turned off. Returns true when shown.
-function S:Notify(kind, title, text)
+function S:Notify(kind, title, text, ntype)
   if not S:Bar() or not def or not S:IsEnabled(def) or cfg()[kind] == false then return false end
+  ntype = SEVERITY[ntype] and ntype or types[kind] or "info"
   local t = table.remove(pool) or create()
   style(t, S:Theme())
-  t.kind = kind
+  t.kind, t.type = kind, ntype
   t.title:SetText(title)
   t.body:SetText(text or "")
   t:SetHeight(10 + t.title:GetStringHeight() + 4 + t.body:GetStringHeight() + 12)
@@ -121,12 +138,14 @@ function S:Notify(kind, title, text)
   table.insert(shown, 1, t)
   if #shown > MAX then release(shown[#shown]) end
   layout()
+  chime(ntype)
   return true
 end
 
--- Test cards for the menu and /superb toast: one card, or with "all" one card of every kind that is on, to check
--- stacking and the cap.
+-- Test cards for the menu and /superb toast: one card of a type (info by default), or with "all" one card of every
+-- kind that is on, to check stacking and the cap.
 function S:TestNotify(which)
+  which = which ~= "" and which or "info"
   if not S:IsEnabled(def) then
     print("Superb: notifications are off. Turn them on under Modules.")
   elseif which == "all" then
@@ -135,12 +154,14 @@ function S:TestNotify(which)
       if S:Notify(kind, kinds[kind], "A test of this notification.") then n = n + 1 end
     end
     print(("Superb: showed %d test notifications (%d kinds turned off). At most %d show at once."):format(n, #order - n, MAX))
+  elseif SEVERITY[which] then
+    S:Notify("test", "Superb", ("A test %s notification in this theme."):format(which), which)
   else
-    S:Notify("test", "Superb", "This is how a notification looks with this theme.")
+    print("Superb: /superb toast [" .. table.concat(TYPES, ", ") .. ", all]")
   end
 end
 
-def =S:RegisterModule({
+def = S:RegisterModule({
   id = "notifications", name = "Notifications", side = "right", order = 1000,
   Text = function() return nil end,
 })
@@ -151,6 +172,7 @@ S:AddMenu(function(root)
   local function toggle(kind) cfg()[kind] = cfg()[kind] == false end
   for _, kind in ipairs(order) do sub:CreateCheckbox(kinds[kind], isOn, toggle, kind) end
   sub:CreateDivider()
+  sub:CreateCheckbox("Play sounds", function() return cfg().sound ~= false end, function() cfg().sound = cfg().sound == false end)
   sub:CreateButton("Show a test notification", function() S:TestNotify() end)
 end)
 

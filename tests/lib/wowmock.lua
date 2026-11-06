@@ -154,7 +154,8 @@ function M.install()
     return false
   end
   SlashCmdList = {}
-
+  M.sounds = {}
+  function PlaySoundFile(path, channel) M.sounds[#M.sounds + 1] = { path = path, channel = channel } return true end
   C_Timer = {
     NewTicker = function(sec, fn) local t = { sec = sec, fn = fn } M.tickers[#M.tickers + 1] = t return t end,
     After = function(sec, fn) M.timers[#M.timers + 1] = fn end,

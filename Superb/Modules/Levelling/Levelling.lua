@@ -17,7 +17,7 @@ local played          -- { total, level, levelAt, at }: the last TIME_PLAYED_MSG
 local lastAFK = false
 local IDS = { "levelling.xp", "levelling.rate", "levelling.milestone", "levelling.activity" }
 
-S:RegisterNotification("levelup", "Level-up summary")
+S:RegisterNotification("levelup", "Level-up summary", "good")
 
 local function levelRecord(level)
   local r = DB.levels[level]

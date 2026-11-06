@@ -7,7 +7,7 @@ local scan = { free = 0, total = 0, bags = {}, vendor = 0, junk = 0, auction = 0
 local dirty = true
 local scanned = false
 
-S:RegisterNotification("bagsfull", "Bags full")
+S:RegisterNotification("bagsfull", "Bags full", "warning")
 
 local function lastBag() return NUM_TOTAL_EQUIPPED_BAG_SLOTS or NUM_BAG_SLOTS or 4 end
 

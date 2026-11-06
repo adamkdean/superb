@@ -259,11 +259,15 @@ check.eq("repair toast", #toasts(), 1)
 check.eq("repair title", toasts()[1].title.text, "Repair soon")
 check.eq("durability red", dur.text, "Armour |cffff404020%|r")
 check.eq("toast under a top bar", toasts()[1].points.TOPRIGHT.rel, bar)
+local SOUNDS = "Interface\\AddOns\\Superb\\Sounds\\"
+check.eq("sound on by default: repair is a warning", M.sounds[#M.sounds].path, SOUNDS .. "warning.ogg")
+check.eq("sound channel", M.sounds[#M.sounds].channel, "Master")
 M.time = M.time + 0.1
 S.durability[5] = { 0, 60 }
 M.fire("UPDATE_INVENTORY_DURABILITY")
 check.eq("broken toast", toasts()[1].title.text, "Item broken")
 check.eq("toasts stack", #toasts(), 2)
+check.eq("broken is bad, and rings inside the gap because it is worse", M.sounds[#M.sounds].path, SOUNDS .. "bad.ogg")
 
 M.time = M.time + 0.1
 S.newMail = true
@@ -312,6 +316,35 @@ local titles = {}
 for _, t in ipairs(toasts()) do titles[#titles + 1] = t.title.text end
 check.eq("toast all skips kinds turned off", table.concat(titles, ","):find("New mail", 1, true), nil)
 check.ok("toast all reports the count", M.printed[#M.printed]:find("test notifications", 1, true) ~= nil)
+M.tick(8)
+for _, t in ipairs(toasts()) do t.scripts.OnUpdate(t) end
+
+-- Each type has its own chime: /superb toast <type> shows a test card of that type.
+M.sounds = {}
+for _, kind in ipairs({ "info", "good", "warning", "bad" }) do
+  M.time = M.time + 1
+  SlashCmdList.SUPERB("toast " .. kind)
+  check.eq("toast " .. kind .. " chime", M.sounds[#M.sounds].path, SOUNDS .. kind .. ".ogg")
+end
+check.eq("plain toast is info", (function() M.time = M.time + 1 SlashCmdList.SUPERB("toast") return M.sounds[#M.sounds].path end)(), SOUNDS .. "info.ogg")
+M.time = M.time + 1
+local before = #M.sounds
+SlashCmdList.SUPERB("toast all")
+check.ok("a burst rings at most once per type step", #M.sounds - before <= 4)
+check.eq("toast all uses each kind's own type", M.sounds[#M.sounds].path, SOUNDS .. "warning.ogg") -- core kinds only here
+SlashCmdList.SUPERB("toast nope")
+check.ok("unknown type lists the types", M.printed[#M.printed]:find("info, good, warning, bad", 1, true) ~= nil)
+
+-- Sounds can be turned off.
+superbW.scripts.OnClick(superbW, "LeftButton")
+check.eq("sounds on in the menu", M.find(M.menu, "Play sounds").selected, true)
+M.find(M.menu, "Play sounds").select()
+check.eq("sounds off saved", SuperbDB.modules.notifications.sound, false)
+before = #M.sounds
+M.time = M.time + 1
+SlashCmdList.SUPERB("toast bad")
+check.eq("off is silent", #M.sounds, before)
+M.find(M.menu, "Play sounds").select()
 M.tick(8)
 for _, t in ipairs(toasts()) do t.scripts.OnUpdate(t) end
 
