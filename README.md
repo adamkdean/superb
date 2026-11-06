@@ -5,7 +5,7 @@
 **A heads-up display for World of Warcraft: Forever, in one bar.**<br>
 Your gold, bags, XP rate, gear and pet, live along the edge of your screen while you play.
 
-![Status: pre-release](https://img.shields.io/badge/status-pre--release-c9a227?style=flat-square) ![WoW: Forever](https://img.shields.io/badge/WoW-Forever-1f4e8c?style=flat-square) ![Interface 16001](https://img.shields.io/badge/interface-16001-555555?style=flat-square) ![Lua](https://img.shields.io/badge/Lua-2C2D72?style=flat-square&logo=lua&logoColor=white) ![Libraries: none](https://img.shields.io/badge/libraries-none-4a7a32?style=flat-square) ![Licence: MIT](https://img.shields.io/badge/licence-MIT-6b6b6b?style=flat-square)
+[![Release](https://img.shields.io/github/v/release/adamkdean/superb?style=flat-square&color=c9a227&label=release)](https://github.com/adamkdean/superb/releases/latest) ![WoW: Forever](https://img.shields.io/badge/WoW-Forever-1f4e8c?style=flat-square) ![Interface 16001](https://img.shields.io/badge/interface-16001-555555?style=flat-square) ![Lua](https://img.shields.io/badge/Lua-2C2D72?style=flat-square&logo=lua&logoColor=white) ![Libraries: none](https://img.shields.io/badge/libraries-none-4a7a32?style=flat-square) ![Licence: MIT](https://img.shields.io/badge/licence-MIT-6b6b6b?style=flat-square)
 
 </div>
 
@@ -72,11 +72,9 @@ More items are on the way. Want something on your bar? [Request a feature](https
 
 ## Install
 
-> Superb is still in testing and has no release yet.
+Superb is on [CurseForge](https://www.curseforge.com/wow/addons/superb) and [Wago](https://addons.wago.io/addons/superb), so WowUp or the CurseForge app can install it and keep it up to date. To install it by hand:
 
-At release, Superb will be on CurseForge and Wago, so WowUp or the CurseForge app can install it and keep it up to date. To install it by hand:
-
-1. Download Superb and unzip it.
+1. Download the zip from the [latest release](https://github.com/adamkdean/superb/releases/latest) and unzip it.
 2. Put the `Superb` folder in `World of Warcraft/_forever_/Interface/AddOns/`.
 3. Start the game, or type `/reload` if it is already running.
 
