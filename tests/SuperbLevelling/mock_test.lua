@@ -134,8 +134,10 @@ actW.scripts.OnClick(actW, "RightButton")
 M.find(M.menu, "2m").select()
 check.eq("idle window saved", SuperbLevellingDB.idleAfter, 120)
 check.eq("idle window applied", Stats.ACTIVE_WINDOW, 120)
-M.find(M.menu, "Reset session").click()
+M.find(M.menu, "Start a new session").click()
 check.eq("session reset", actW.text, "Active 0s · Idle 0s")
+check.eq("old session filed", #SuperbLevellingDB.sessions, 1)
+check.eq("filed session level", SuperbLevellingDB.sessions[1].levelFrom, 23)
 
 -- At the level cap the rate and milestone items hide.
 S.level, S.maxLevel = 60, 60
@@ -150,6 +152,61 @@ S.level = 30
 S.xpDisabled = true
 M.tick()
 check.eq("xp off", xpW.text, "Lv 30 · XP off")
+
+-- Reload: the session continues with its rates, and no time is counted while the client was down.
+S.level, S.xpDisabled, S.xp, S.xpMax = 30, false, 1000, 20000
+M.fire("PLAYER_XP_UPDATE", "player") -- the jump from the cap test is not a gain to measure
+M.find(M.menu, "Start a new session").click()
+S.moving = true
+for _ = 1, 5 do
+  M.tick(60)
+  S.xp = S.xp + 1000
+  M.fire("PLAYER_XP_UPDATE", "player")
+end
+local beforeRate, beforeAct = rateW.text, actW.text
+M.fire("PLAYER_LOGOUT")
+check.ok("session saved at logout", SuperbLevellingDB.session ~= nil)
+
+local function relaunch(gap)
+  M.restart(gap, { SuperbDB = SuperbDB, SuperbLevellingDB = SuperbLevellingDB })
+  M.load("Superb", M.SUPERB_FILES)
+  ns = M.load("SuperbLevelling", M.LEVELLING_FILES)
+  Superb = _G.Superb
+  M.fire("ADDON_LOADED", "Superb")
+  M.fire("ADDON_LOADED", "SuperbLevelling")
+  M.fire("PLAYER_LOGIN")
+  rateW, actW = widget("levelling.rate"), widget("levelling.activity")
+end
+
+relaunch(20)
+check.eq("rate kept after reload", rateW.text, beforeRate)
+check.eq("activity kept after reload", actW.text, beforeAct)
+check.eq("saved session cleared", SuperbLevellingDB.session, nil)
+M.tick(5)
+check.ok("still active after reload", actW.text:find("^Active 5m") ~= nil)
+actW.scripts.OnEnter(actW)
+check.ok("tooltip says continued", table.concat(GameTooltip.lines, "\n"):find("Continued after a reload", 1, true) ~= nil)
+actW.scripts.OnLeave(actW)
+
+-- A long break: the old session goes into the history and a new one starts.
+local filed = #SuperbLevellingDB.sessions
+M.fire("PLAYER_LOGOUT")
+relaunch(3 * 3600)
+check.eq("new session after a long break", actW.text, "Active 0s · Idle 0s")
+check.eq("old session filed after a break", #SuperbLevellingDB.sessions, filed + 1)
+check.eq("filed session xp", SuperbLevellingDB.sessions[1].xp, 5000)
+rateW.scripts.OnEnter(rateW)
+check.ok("recent sessions listed", table.concat(GameTooltip.lines, "\n"):find("Recent sessions", 1, true) ~= nil)
+rateW.scripts.OnLeave(rateW)
+
+-- The break limit is a setting.
+actW.scripts.OnClick(actW, "RightButton")
+M.find(M.menu, "8h 00m").select()
+check.eq("break limit saved", SuperbLevellingDB.resumeAfter, 28800)
+M.tick(120)
+M.fire("PLAYER_LOGOUT")
+relaunch(3 * 3600)
+check.ok("kept after 3 h with an 8 h limit", actW.text:find("^Active 2m") ~= nil)
 
 check.eq("no module errors", #M.errors, 0)
 for _, e in ipairs(M.errors) do io.write(e, "\n") end

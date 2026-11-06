@@ -97,4 +97,38 @@ check.eq("to reach estimate", need, 11000 + math.floor(11000 * (22 / 21) ^ 1.5 +
 check.eq("already there", Stats.XPToReach(25, 10, 25, known), 0)
 check.eq("unknown base", Stats.XPToReach(5, 0, 10, known), nil)
 
+-- Saving across reloads: counters, activity window and rolling buckets survive, offline time is not counted.
+local live = Stats.NewSession(5000, 23)
+live.startedAt = 1800000000
+Stats.AddXP(live, 5030, 600)
+Stats.Advance(live, 5050, false)
+Stats.Signal(live, 5100)
+Stats.Advance(live, 5120, false)
+local frozen = Stats.Freeze(live, 5120, 24)
+check.eq("frozen level", frozen.levelTo, 24)
+check.eq("frozen age", frozen.ageSignal, 20)
+-- A client restart: GetTime() starts again near zero.
+local back = Stats.Thaw(frozen, 300)
+check.eq("thaw active", back.active, live.active)
+check.eq("thaw xp", back.xp, 600)
+check.eq("thaw level from", back.levelFrom, 23)
+check.eq("thaw started at", back.startedAt, 1800000000)
+check.eq("thaw signal age kept", 300 - back.lastSignal, 20)
+check.eq("thaw state still active", Stats.State(back, 300, false), "active")
+local bxp, bact = Stats.Rolling(back, 300)
+local lxp, lact = Stats.Rolling(live, 5120)
+check.eq("thaw rolling xp", bxp, lxp)
+check.eq("thaw rolling active", bact, lact)
+check.eq("no offline time counted", select(1, Stats.Advance(back, 300, false)), 0)
+check.eq("online", Stats.Online(back), 120)
+
+local sum = Stats.Summary(back, 1800000500, 24)
+check.eq("summary online", sum.online, 120)
+check.eq("summary levels", sum.levelFrom .. ">" .. sum.levelTo, "23>24")
+local history = {}
+check.eq("short session not kept", Stats.Archive(history, { online = 30 }), false)
+for n = 1, Stats.MAX_HISTORY + 3 do Stats.Archive(history, { online = 60 + n }) end
+check.eq("history capped", #history, Stats.MAX_HISTORY)
+check.eq("newest first", history[1].online, 60 + Stats.MAX_HISTORY + 3)
+
 check.done()

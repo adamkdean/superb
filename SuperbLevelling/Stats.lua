@@ -8,13 +8,15 @@ Stats.ACTIVE_WINDOW = 60      -- seconds after the last activity signal that sti
 Stats.ROLLING_MINUTES = 15    -- rolling rate window
 Stats.MIN_SAMPLE = 120        -- active seconds needed before a rate is shown
 Stats.DEFAULT_MILESTONES = { 10, 20, 25, 30, 40, 50, 60 }
+Stats.RESUME_GAP = 1800       -- a session continues after a reload or a break up to this long (seconds)
+Stats.MAX_HISTORY = 20        -- recent sessions kept
 
 local floor, max, min = math.floor, math.max, math.min
 
 -- Session -----------------------------------------------------------------------------------------------------
 
-function Stats.NewSession(now)
-  return { started = now, last = now, lastSignal = now, activeFrom = now, prevEnd = now,
+function Stats.NewSession(now, level)
+  return { started = now, levelFrom = level, last = now, lastSignal = now, activeFrom = now, prevEnd = now,
            active = 0, idle = 0, afk = 0, xp = 0, questXP = 0, deaths = 0, buckets = {} }
 end
 
@@ -98,6 +100,55 @@ end
 function Stats.TimeFor(need, ratePerHour)
   if not ratePerHour or ratePerHour <= 0 then return nil end
   return max(0, need) * 3600 / ratePerHour
+end
+
+-- Online time in the session: active, idle and AFK, without breaks between reloads or logins.
+function Stats.Online(s) return s.active + s.idle + s.afk end
+
+-- Saving across reloads -------------------------------------------------------------------------------------
+-- GetTime() is not kept across a restart of the client, so a saved session stores ages (seconds before
+-- `now`) and the minute buckets as minutes before now. Time while logged out is not counted.
+
+local COUNTERS = { "active", "idle", "afk", "xp", "questXP", "deaths", "levelFrom", "startedAt" }
+
+function Stats.Freeze(s, now, level)
+  local f = { ageSignal = now - s.lastSignal, ageFrom = now - s.activeFrom, agePrev = now - s.prevEnd,
+              levelTo = level, buckets = {} }
+  for _, k in ipairs(COUNTERS) do f[k] = s[k] end
+  local minute = floor(now / 60)
+  for key, b in pairs(s.buckets) do
+    f.buckets[#f.buckets + 1] = { age = minute - key, xp = b.xp, active = b.active }
+  end
+  return f
+end
+
+function Stats.Thaw(f, now)
+  local s = Stats.NewSession(now, f.levelFrom)
+  for _, k in ipairs(COUNTERS) do
+    if f[k] ~= nil then s[k] = f[k] end
+  end
+  s.lastSignal = now - (f.ageSignal or 0)
+  s.activeFrom = now - (f.ageFrom or 0)
+  s.prevEnd = now - (f.agePrev or 0)
+  local minute = floor(now / 60)
+  for _, b in ipairs(f.buckets or {}) do
+    s.buckets[minute - b.age] = { xp = b.xp, active = b.active }
+  end
+  return s
+end
+
+-- A short record of a finished session, for the history.
+function Stats.Summary(s, endedAt, levelTo)
+  return { startedAt = s.startedAt, endedAt = endedAt, online = Stats.Online(s), active = s.active, idle = s.idle,
+           afk = s.afk, xp = s.xp, questXP = s.questXP, deaths = s.deaths, levelFrom = s.levelFrom, levelTo = levelTo }
+end
+
+-- Adds a summary to the front of the history, keeping MAX_HISTORY. Sessions under a minute are not kept.
+function Stats.Archive(history, summary)
+  if (summary.online or 0) < 60 then return false end
+  table.insert(history, 1, summary)
+  for i = #history, Stats.MAX_HISTORY + 1, -1 do history[i] = nil end
+  return true
 end
 
 -- XP gains --------------------------------------------------------------------------------------------------

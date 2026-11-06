@@ -1,7 +1,7 @@
 -- A small stub of the WoW client for mock tests: frames, points, events, timers, tooltip, menu and the game
 -- state the Superb addons read. Not a game test. Only methods seen in the Blizzard API docs are stubbed, and
 -- an unknown method (a capitalised name) is an error, so a typo in an addon fails here.
-local M = { time = 1000, frames = {}, textures = {}, tickers = {}, timers = {}, errors = {}, printed = {} }
+local M = { time = 1000, serverBase = 1800000000, frames = {}, textures = {}, tickers = {}, timers = {}, errors = {}, printed = {} }
 
 M.state = {
   level = 23, xp = 4000, xpMax = 10000, maxLevel = 60, rested = 1500, resting = false, xpDisabled = false,
@@ -114,7 +114,7 @@ function M.install()
   function GetTime() return M.time end
   date = os.date
   unpack = table.unpack  -- a global in the game's Lua 5.1
-  function GetServerTime() return 1800000000 + M.time end
+  function GetServerTime() return M.serverBase + math.floor(M.time) end
   function GetSessionTime() return S.session end
   function GetGameTime() return S.gameHour, S.gameMinute end
   C_DateAndTime = { GetCurrentCalendarTime = function() return { weekday = 5, monthDay = 6, month = 11, year = 2026, hour = 13, minute = 5 } end }
@@ -252,6 +252,18 @@ function M.tick(n)
     M.time = M.time + 1
     for _, t in ipairs(M.tickers) do t.fn() end
   end
+end
+
+-- A client restart after `gap` seconds offline: every frame, timer and addon global is gone, GetTime() starts
+-- again near zero, the server clock moves on, and the saved variables are kept.
+function M.restart(gap, saved)
+  local server = M.serverBase + math.floor(M.time)
+  M.frames, M.textures, M.tickers, M.timers = {}, {}, {}, {}
+  Superb = nil
+  M.time = 50
+  M.serverBase = server + gap - M.time
+  M.install()
+  for k, v in pairs(saved) do _G[k] = v end
 end
 
 function M.runTimers()

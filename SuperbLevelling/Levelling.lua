@@ -4,12 +4,13 @@
 local ADDON, ns = ...
 local S, F, Stats = Superb, Superb.Format, ns.Stats
 
-local DEFAULTS = { levels = {}, xpMax = {}, idleAfter = 60 }
+local DEFAULTS = { levels = {}, xpMax = {}, idleAfter = 60, sessions = {}, resumeAfter = Stats.RESUME_GAP }
 local MILESTONE_CHOICES = { 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60 }
 local IDLE_CHOICES = { 30, 60, 120, 300 }
+local RESUME_CHOICES = { 300, 1800, 7200, 28800 }
 
 -- SavedVariablesPerCharacter load after this file runs, so DB is bound to SuperbLevellingDB on ADDON_LOADED.
-local DB = { levels = {}, xpMax = {}, idleAfter = 60 }
+local DB = { levels = {}, xpMax = {}, idleAfter = 60, sessions = {}, resumeAfter = Stats.RESUME_GAP }
 local session = Stats.NewSession(GetTime())
 local xpState
 local played          -- { total, level, levelAt, at }: the last TIME_PLAYED_MSG
@@ -51,7 +52,7 @@ local function rates(now)
   local rxp, ractive = Stats.Rolling(session, now)
   local rolling = Stats.Rate(rxp, ractive)
   local sessionRate = Stats.Rate(session.xp, session.active)
-  local wall = Stats.Rate(session.xp, now - session.started)
+  local wall = Stats.Rate(session.xp, Stats.Online(session))
   return rolling or sessionRate, rolling, sessionRate, wall
 end
 
@@ -59,9 +60,34 @@ local function refresh()
   for _, id in ipairs(IDS) do S:Refresh(id) end
 end
 
+local function newSession()
+  local s = Stats.NewSession(GetTime(), UnitLevel("player"))
+  s.startedAt = GetServerTime()
+  return s
+end
+
 local function resetSession()
-  session = Stats.NewSession(GetTime())
+  Stats.Archive(DB.sessions, Stats.Summary(session, GetServerTime(), UnitLevel("player")))
+  session = newSession()
   refresh()
+end
+
+-- At login: continue the saved session after a reload or a short break, else file it and start a new one.
+local function loadSession()
+  local saved = DB.session
+  DB.session = nil
+  if saved and saved.savedAt and GetServerTime() - saved.savedAt <= (DB.resumeAfter or Stats.RESUME_GAP) then
+    session = Stats.Thaw(saved, GetTime())
+    session.resumed = true
+    return
+  end
+  if saved and saved.savedAt then Stats.Archive(DB.sessions, Stats.Summary(saved, saved.savedAt, saved.levelTo)) end
+  session = newSession()
+end
+
+local function startedText(serverTime)
+  local t = date("*t", serverTime)
+  return F.Day(t.wday, t.day, t.month) .. " " .. F.Clock(t.hour, t.min, true)
 end
 
 local function white(tip, left, right) tip:AddDoubleLine(left, right, nil, nil, nil, 1, 1, 1) end
@@ -136,6 +162,11 @@ local function startTracking()
     local r = levelRecord(UnitLevel("player"))
     r.deaths = r.deaths + 1
   end)
+  on("PLAYER_LOGOUT", function()
+    local f = Stats.Freeze(session, GetTime(), UnitLevel("player"))
+    f.savedAt = GetServerTime()
+    DB.session = f
+  end)
   on("TIME_PLAYED_MSG", function(total, thisLevel)
     played = { total = total, level = thisLevel, levelAt = UnitLevel("player"), at = GetTime() }
   end)
@@ -167,8 +198,9 @@ loader:SetScript("OnEvent", function(self, event, name)
     DB = SuperbLevellingDB
     Stats.ACTIVE_WINDOW = DB.idleAfter or 60
   elseif event == "PLAYER_LOGIN" then
-    session = Stats.NewSession(GetTime())
+    loadSession()
     startTracking()
+    refresh() -- Superb drew these items before the saved session was loaded
     self:UnregisterAllEvents()
   end
 end)
@@ -177,7 +209,7 @@ end)
 -- No `tick = true`: the ticker above refreshes these items after it has counted the second.
 
 local function sessionMenu(root)
-  root:CreateButton("Reset session", resetSession)
+  root:CreateButton("Start a new session", resetSession)
 end
 
 S:RegisterModule({
@@ -268,6 +300,18 @@ S:RegisterModule({
       white(tip, "  from kills and other", F.Thousands(session.xp - quest))
     end
     if session.deaths > 0 then white(tip, "Deaths", tostring(session.deaths)) end
+    if #DB.sessions > 0 then
+      tip:AddLine(" ")
+      tip:AddLine("Recent sessions (online, XP per active hour, levels)", 1, 1, 1)
+      for i = 1, math.min(5, #DB.sessions) do
+        local p = DB.sessions[i]
+        local rate = Stats.Rate(p.xp or 0, p.active)
+        local levels = p.levelFrom and p.levelTo and p.levelTo ~= p.levelFrom and ("%d to %d"):format(p.levelFrom, p.levelTo)
+          or p.levelFrom and ("%d"):format(p.levelFrom) or "?"
+        white(tip, p.startedAt and startedText(p.startedAt) or "?",
+          ("%s, %s, %s"):format(F.Duration(p.online), rate and F.Short(rate) or "-", levels))
+      end
+    end
     hint(tip, ("Rates count active time only, except \"all time\". A rate shows after %d minutes of activity."):format(Stats.MIN_SAMPLE / 60))
   end,
 
@@ -355,6 +399,8 @@ S:RegisterModule({
     white(tip, "Idle", ("%s (%d%%)"):format(F.Duration(session.idle), F.Percent(session.idle, total)))
     white(tip, "AFK", ("%s (%d%%)"):format(F.Duration(session.afk), F.Percent(session.afk, total)))
     white(tip, "Session", F.Duration(total))
+    if session.startedAt then white(tip, "Started", startedText(session.startedAt)) end
+    if session.resumed then tip:AddLine("Continued after a reload or a short break.", 0.5, 0.8, 1) end
     hint(tip, ("Idle starts %d seconds after you last moved, turned, cast, fought or clicked. Right-click: options."):format(Stats.ACTIVE_WINDOW))
   end,
 
@@ -364,6 +410,10 @@ S:RegisterModule({
     local function isIdle(v) return Stats.ACTIVE_WINDOW == v end
     local function setIdle(v) DB.idleAfter = v Stats.ACTIVE_WINDOW = v S:Refresh("levelling.activity") end
     for _, v in ipairs(IDLE_CHOICES) do idle:CreateRadio(F.Duration(v), isIdle, setIdle, v) end
+    local keep = root:CreateButton("Keep the session after a break of")
+    local function isKeep(v) return (DB.resumeAfter or Stats.RESUME_GAP) == v end
+    local function setKeep(v) DB.resumeAfter = v end
+    for _, v in ipairs(RESUME_CHOICES) do keep:CreateRadio(F.Duration(v), isKeep, setKeep, v) end
     sessionMenu(root)
   end,
 })
