@@ -1,6 +1,6 @@
 ## Interface: 16001
 ## Title: Superb Levelling
-## Notes: Levelling items for the Superb bar: XP per hour, time to level, next milestone, active and idle time.
+## Notes: Levelling items for the Superb bar: XP per hour, time to level, next milestone, active and idle time, an XP line and level-up notes.
 ## Author: Adam K Dean
 ## Version: 0.1.0
 ## Dependencies: Superb
@@ -8,3 +8,4 @@
 
 Stats.lua
 Levelling.lua
+XPLine.lua

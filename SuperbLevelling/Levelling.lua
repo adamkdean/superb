@@ -16,6 +16,8 @@ local played          -- { total, level, levelAt, at }: the last TIME_PLAYED_MSG
 local lastAFK = false
 local IDS = { "levelling.xp", "levelling.rate", "levelling.milestone", "levelling.activity" }
 
+S:RegisterNotification("levelup", "Level-up summary")
+
 local function levelRecord(level)
   local r = DB.levels[level]
   if not r then
@@ -112,7 +114,13 @@ local function startTracking()
   on("PLAYER_XP_UPDATE", function(unit) if unit == nil or unit == "player" then onXP() end end)
   on("PLAYER_LEVEL_UP", function(level)
     local r = DB.levels[level - 1]
-    if r then r.finished = GetServerTime() end
+    if r then
+      r.finished = GetServerTime()
+      local text = ("Level %d took %s (%s active)."):format(level - 1, F.Duration(r.active + r.idle + r.afk), F.Duration(r.active))
+      if r.xp > 0 then text = text .. (" %d%% of the XP came from quests."):format(F.Percent(math.min(r.questXP, r.xp), r.xp)) end
+      if r.deaths > 0 then text = text .. (" %d %s."):format(r.deaths, r.deaths == 1 and "death" or "deaths") end
+      S:Notify("levelup", ("Level %d"):format(level), text)
+    end
     levelRecord(level)
     signal()
   end)
