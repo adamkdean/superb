@@ -74,6 +74,8 @@ More items are on the way. Want something on your bar? [Request a feature](https
 
 > Superb is still in testing and has no release yet.
 
+At release, Superb will be on CurseForge and Wago, so WowUp or the CurseForge app can install it and keep it up to date. To install it by hand:
+
 1. Download Superb and unzip it.
 2. Put the `Superb` folder in `World of Warcraft/_forever_/Interface/AddOns/`.
 3. Start the game, or type `/reload` if it is already running.
