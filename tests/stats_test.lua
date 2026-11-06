@@ -1,8 +1,8 @@
--- Pure tests for SuperbLevelling/Stats.lua. Run from the repo root: lua tests/SuperbLevelling/stats_test.lua
+-- Pure tests for Superb/Modules/Levelling/Stats.lua. Run from the repo root: lua tests/stats_test.lua
 package.path = "tests/lib/?.lua;" .. package.path
 local check = require("check")
 local ns = {}
-loadfile("SuperbLevelling/Stats.lua")("SuperbLevelling", ns)
+loadfile("Superb/Modules/Levelling/Stats.lua")("Superb", ns)
 local Stats = ns.Stats
 
 -- Activity: active for 60 s after a signal, split inside one interval, AFK separate.

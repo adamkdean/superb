@@ -1,4 +1,4 @@
--- Superb Levelling: a thin XP line along the inner edge of the Superb bar, with rested XP shaded ahead of it.
+-- Superb, levelling module: a thin XP line along the inner edge of the Superb bar, with rested XP shaded ahead of it.
 local S = Superb
 
 local HEIGHT = 2

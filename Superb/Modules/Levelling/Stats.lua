@@ -1,5 +1,5 @@
--- Superb Levelling: activity, XP rate and milestone maths. Pure Lua: no game API, so
--- tests/SuperbLevelling/stats_test.lua runs it outside the game. Times are seconds (GetTime() in game).
+-- Superb, levelling module: activity, XP rate and milestone maths. Pure Lua: no game API, so
+-- tests/stats_test.lua runs it outside the game. Times are seconds (GetTime() in game).
 local _, ns = ...
 local Stats = {}
 ns.Stats = Stats

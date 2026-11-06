@@ -1,5 +1,5 @@
 -- A small stub of the WoW client for mock tests: frames, points, events, timers, tooltip, menu and the game
--- state the Superb addons read. Not a game test. Only methods seen in the Blizzard API docs are stubbed, and
+-- state Superb reads. Not a game test. Only methods seen in the Blizzard API docs are stubbed, and
 -- an unknown method (a capitalised name) is an error, so a typo in an addon fails here.
 local M = { time = 1000, serverBase = 1800000000, frames = {}, textures = {}, tickers = {}, timers = {}, errors = {}, printed = {} }
 
@@ -324,9 +324,15 @@ function M.load(addon, files, ns)
   return ns
 end
 
-M.SUPERB_FILES = { "Format.lua", "Arrange.lua", "Themes.lua", "Core.lua", "Notify.lua", "Modules/Clock.lua", "Modules/Gold.lua",
+-- Superb is one addon. Tests load the core, then the modules they need, into one shared namespace.
+M.CORE_FILES = { "Format.lua", "Arrange.lua", "Themes.lua", "Core.lua", "Notify.lua", "Modules/Clock.lua", "Modules/Gold.lua",
   "Modules/Bags.lua", "Modules/Durability.lua", "Modules/Performance.lua", "Modules/Location.lua" }
-M.LEVELLING_FILES = { "Stats.lua", "Levelling.lua", "XPLine.lua" }
+M.LEVELLING_FILES = { "Modules/Levelling/Stats.lua", "Modules/Levelling/Levelling.lua", "Modules/Levelling/XPLine.lua" }
+M.HUNTER_FILES = { "Modules/Hunter/Pet.lua", "Modules/Hunter/Hunter.lua" }
+M.ALL_FILES = {}
+for _, list in ipairs({ M.CORE_FILES, M.LEVELLING_FILES, M.HUNTER_FILES }) do
+  for _, f in ipairs(list) do M.ALL_FILES[#M.ALL_FILES + 1] = f end
+end
 
 -- Checks that each TOC lists exactly the files the test loads, so the test and the game load the same code.
 function M.tocFiles(addon)

@@ -1,5 +1,5 @@
--- Mock test for Superb: load order, saved data, moving the UI, themes, modules, tooltips and menus.
--- Not a game test. Run from the repo root: lua tests/Superb/mock_test.lua
+-- Mock test for the Superb bar and its core modules: load order, saved data, moving the UI, themes, modules,
+-- tooltips and menus. Not a game test. Run from the repo root: lua tests/bar_test.lua
 package.path = "tests/lib/?.lua;" .. package.path
 local check = require("check")
 local M = require("wowmock")
@@ -7,7 +7,7 @@ M.install()
 local S = M.state
 
 -- The TOC and the test load the same files.
-check.eq("toc files", table.concat(M.tocFiles("Superb"), ","), table.concat(M.SUPERB_FILES, ","))
+check.eq("toc files", table.concat(M.tocFiles("Superb"), ","), table.concat(M.ALL_FILES, ","))
 
 -- AuctionDB stand-in: lowest price 300 for item 3 only.
 AuctionDB = {
@@ -15,7 +15,7 @@ AuctionDB = {
   LastPrice = function(_, id, house) if id == 3 and house == "Alliance" then return { 1, 300, 350, 4 } end end,
 }
 
-M.load("Superb", M.SUPERB_FILES)
+M.load("Superb", M.CORE_FILES)
 local Superb = _G.Superb
 
 -- SavedVariables arrive after the files run, then ADDON_LOADED.
@@ -354,7 +354,7 @@ SuperbDB.modules.location.side = "left"
 SuperbDB.modules.location.order = 5
 local saved = SuperbDB
 M.restart(10, { SuperbDB = saved })
-M.load("Superb", M.SUPERB_FILES)
+M.load("Superb", M.CORE_FILES)
 Superb = _G.Superb
 M.fire("ADDON_LOADED", "Superb")
 M.fire("PLAYER_LOGIN")

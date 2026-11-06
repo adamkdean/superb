@@ -1,9 +1,10 @@
 ## Interface: 16001
 ## Title: Superb
-## Notes: A menu bar along the top or bottom of the screen, with modules: clock, gold, bags, durability, performance, location and notifications.
+## Notes: A menu bar along the top or bottom of the screen: clock, gold, bags, durability, performance, location, levelling and hunter pet items, and notifications.
 ## Author: Adam K Dean
 ## Version: 0.1.0
 ## SavedVariables: SuperbDB
+## SavedVariablesPerCharacter: SuperbLevellingDB
 
 Format.lua
 Arrange.lua
@@ -16,3 +17,8 @@ Modules\Bags.lua
 Modules\Durability.lua
 Modules\Performance.lua
 Modules\Location.lua
+Modules\Levelling\Stats.lua
+Modules\Levelling\Levelling.lua
+Modules\Levelling\XPLine.lua
+Modules\Hunter\Pet.lua
+Modules\Hunter\Hunter.lua

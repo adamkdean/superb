@@ -1,4 +1,4 @@
--- Superb Hunter: a pet item for the Superb bar. Shows the pet's name, level, mood, health and food; feeds it or
+-- Superb, hunter module: a pet item for the Superb bar. Shows the pet's name, level, mood, health and food; feeds it or
 -- casts Mend Pet on a click; warns when it is unhappy, low on food, gains loyalty or dies. Everything is set in
 -- its menu (Shift+right-click on the item).
 local _, ns = ...

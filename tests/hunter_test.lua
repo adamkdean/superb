@@ -1,13 +1,11 @@
--- Mock test for SuperbHunter on top of Superb: the secure pet item, combat locks, clicks, menus and
--- warnings. Not a game test. Run from the repo root: lua tests/SuperbHunter/mock_test.lua
+-- Mock test for the hunter module: the secure pet item, combat locks, clicks, menus and warnings.
+-- Not a game test. Run from the repo root: lua tests/hunter_test.lua
 package.path = "tests/lib/?.lua;" .. package.path
 local check = require("check")
 local M = require("wowmock")
 M.install()
 local S = M.state
 
-check.eq("toc files", table.concat(M.tocFiles("SuperbHunter"), ","), "Pet.lua,Hunter.lua")
-check.eq("superb toc", table.concat(M.tocFiles("Superb"), ","), table.concat(M.SUPERB_FILES, ","))
 
 S.class = "HUNTER"
 S.pet = { name = "Temporary", level = 10, family = "Tallstrider", happiness = 3, damage = 125, rate = 1,
@@ -18,8 +16,7 @@ S.itemLevel = { [20] = 5, [21] = 12 }
 S.bags[1].items[1] = { itemID = 20, stackCount = 4, quality = 1, hyperlink = "[Old Cheese]", isBound = false, hasNoValue = false, iconFileID = 111 }
 S.bags[1].items[2] = { itemID = 21, stackCount = 2, quality = 1, hyperlink = "[Skycheddar]", isBound = false, hasNoValue = false, iconFileID = 222 }
 
-M.load("Superb", M.SUPERB_FILES)
-M.load("SuperbHunter", { "Pet.lua", "Hunter.lua" })
+M.load("Superb", M.HUNTER_FILES, M.load("Superb", M.CORE_FILES))
 local Superb = _G.Superb
 M.fire("ADDON_LOADED", "Superb")
 M.fire("PLAYER_LOGIN")
@@ -132,8 +129,7 @@ check.eq("death warning", newest().title.text, "Pet died")
 -- Not a hunter: no pet item.
 M.restart(0, {})
 S.class = "WARRIOR"
-M.load("Superb", M.SUPERB_FILES)
-M.load("SuperbHunter", { "Pet.lua", "Hunter.lua" })
+M.load("Superb", M.HUNTER_FILES, M.load("Superb", M.CORE_FILES))
 M.fire("ADDON_LOADED", "Superb")
 M.fire("PLAYER_LOGIN")
 local found = false
@@ -143,8 +139,7 @@ check.eq("no pet item for other classes", found, false)
 -- Logging in during combat: the secure button waits for combat to end.
 M.restart(0, {})
 S.class, S.lockdown = "HUNTER", true
-M.load("Superb", M.SUPERB_FILES)
-M.load("SuperbHunter", { "Pet.lua", "Hunter.lua" })
+M.load("Superb", M.HUNTER_FILES, M.load("Superb", M.CORE_FILES))
 M.fire("ADDON_LOADED", "Superb")
 M.fire("PLAYER_LOGIN")
 local d2

@@ -1,5 +1,5 @@
--- Superb Hunter: pet moods, food choice and the feed macro. Pure Lua: no game API, so
--- tests/SuperbHunter/pet_test.lua runs it outside the game.
+-- Superb, hunter module: pet moods, food choice and the feed macro. Pure Lua: no game API, so
+-- tests/pet_test.lua runs it outside the game.
 local _, ns = ...
 local Pet = {}
 ns.Pet = Pet

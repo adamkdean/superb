@@ -1,4 +1,4 @@
--- Superb Levelling: levelling items for the Superb bar. Level and XP, XP per hour and time to level, the next
+-- Superb, levelling module: levelling items for the Superb bar. Level and XP, XP per hour and time to level, the next
 -- milestone, and active, idle and AFK time. The maths is in Stats.lua; this file reads the game and saves
 -- a per-character history of each level.
 local ADDON, ns = ...
@@ -100,7 +100,7 @@ local handlers = {}
 
 local function on(event, fn, unit)
   local ok = unit and pcall(frame.RegisterUnitEvent, frame, event, unit) or (not unit and pcall(frame.RegisterEvent, frame, event))
-  if ok then handlers[event] = fn else print("Superb Levelling: event not available: " .. event) end
+  if ok then handlers[event] = fn else print("Superb: event not available: " .. event) end
 end
 
 frame:SetScript("OnEvent", function(_, event, ...)
@@ -356,7 +356,7 @@ S:RegisterModule({
       end
     end
     if anyEstimate then
-      hint(tip, "~ The XP for levels not reached yet is an estimate. Superb Levelling records the real values as you level.")
+      hint(tip, "~ The XP for levels not reached yet is an estimate. Superb records the real values as you level.")
     end
     hint(tip, "Times are active play at your current rate. Right-click: choose milestones.")
   end,

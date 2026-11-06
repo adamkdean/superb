@@ -1,4 +1,4 @@
--- Pure tests for Superb/Format.lua and Arrange.lua. Run from the repo root: lua tests/Superb/format_test.lua
+-- Pure tests for Superb/Format.lua and Arrange.lua. Run from the repo root: lua tests/format_test.lua
 package.path = "tests/lib/?.lua;" .. package.path
 local check = require("check")
 dofile("Superb/Format.lua")

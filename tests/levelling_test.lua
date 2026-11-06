@@ -1,15 +1,13 @@
--- Mock test for SuperbLevelling on top of Superb: load order, saved data, XP flow, level-ups, activity,
--- milestones, tooltips and menus. Not a game test. Run from the repo root: lua tests/SuperbLevelling/mock_test.lua
+-- Mock test for the levelling module: saved data, XP flow, level-ups, activity, milestones, sessions, tooltips
+-- and menus. Not a game test. Run from the repo root: lua tests/levelling_test.lua
 package.path = "tests/lib/?.lua;" .. package.path
 local check = require("check")
 local M = require("wowmock")
 M.install()
 local S = M.state
 
-check.eq("toc files", table.concat(M.tocFiles("SuperbLevelling"), ","), table.concat(M.LEVELLING_FILES, ","))
-
-M.load("Superb", M.SUPERB_FILES)
-local ns = M.load("SuperbLevelling", M.LEVELLING_FILES)
+local ns = M.load("Superb", M.CORE_FILES)
+M.load("Superb", M.LEVELLING_FILES, ns)
 local Superb, Stats = _G.Superb, ns.Stats
 
 -- Saved data from an earlier session: level 22 took 3000 XP, custom milestones, 30 s idle.
@@ -17,7 +15,6 @@ SuperbDB = nil
 SuperbLevellingDB = { levels = { [22] = { active = 3000, idle = 600, afk = 0, xp = 3000, questXP = 1000, deaths = 1,
   started = 1, finished = 2 } }, xpMax = { [22] = 9000 }, milestones = { [25] = true, [30] = true }, idleAfter = 30 }
 M.fire("ADDON_LOADED", "Superb")
-M.fire("ADDON_LOADED", "SuperbLevelling")
 check.eq("idle setting applied", Stats.ACTIVE_WINDOW, 30)
 M.fire("PLAYER_LOGIN")
 check.eq("saved levels kept", SuperbLevellingDB.levels[22].xp, 3000)
@@ -169,12 +166,11 @@ check.ok("session saved at logout", SuperbLevellingDB.session ~= nil)
 
 local function relaunch(gap)
   M.restart(gap, { SuperbDB = SuperbDB, SuperbLevellingDB = SuperbLevellingDB })
-  M.load("Superb", M.SUPERB_FILES)
-  ns = M.load("SuperbLevelling", M.LEVELLING_FILES)
+  ns = M.load("Superb", M.CORE_FILES)
+  M.load("Superb", M.LEVELLING_FILES, ns)
   Superb = _G.Superb
   M.fire("ADDON_LOADED", "Superb")
-  M.fire("ADDON_LOADED", "SuperbLevelling")
-  M.fire("PLAYER_LOGIN")
+    M.fire("PLAYER_LOGIN")
   rateW, actW = widget("levelling.rate"), widget("levelling.activity")
 end
 

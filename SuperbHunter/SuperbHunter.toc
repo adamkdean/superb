@@ -1,9 +1,0 @@
-## Interface: 16001
-## Title: Superb Hunter
-## Notes: A hunter pet item for the Superb bar: mood, health and food; click to feed or mend; warnings.
-## Author: Adam K Dean
-## Version: 0.1.0
-## Dependencies: Superb
-
-Pet.lua
-Hunter.lua
