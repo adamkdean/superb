@@ -1,126 +1,87 @@
-# Superb
+<div align="center">
 
-A clean menu bar for **World of Warcraft: Forever**, in the style of the macOS menu bar. Superb puts the things you check all day along one thin strip at the top or bottom of the screen, and moves the rest of the interface out of its way.
+<img src="docs/readme/logo.webp" alt="Superb" width="560">
 
-Clock, gold, bags, durability, latency and location are always one glance away. Levelling characters get XP per hour, time to level and an honest split of active and idle time. Hunters get their pet's mood, health and food, with one click to feed.
+**Everything you keep checking, in one thin bar along the edge of your screen.**<br>
+A World of Warcraft: Forever addon for your gold, your bags, your XP rate and your pet.
 
-> **Status: pre-release.** Superb is in testing and has not been published yet.
+![Status: pre-release](https://img.shields.io/badge/status-pre--release-c9a227?style=flat-square) ![WoW: Forever](https://img.shields.io/badge/WoW-Forever-1f4e8c?style=flat-square) ![Interface 16001](https://img.shields.io/badge/interface-16001-555555?style=flat-square) ![Lua](https://img.shields.io/badge/Lua-2C2D72?style=flat-square&logo=lua&logoColor=white) ![Libraries: none](https://img.shields.io/badge/libraries-none-4a7a32?style=flat-square) ![Licence: MIT](https://img.shields.io/badge/licence-MIT-6b6b6b?style=flat-square)
 
-## Features
+</div>
 
-- **A real menu bar.** The bar sits at the top or bottom of the screen and the whole interface moves down (or up) to make room, so nothing hides behind it.
-- **Five themes.** Default Light, Default Dark, Minimal, Tooltip and Vanilla, from a modern translucent look to the classic gold-on-dark style.
-- **Arrange it your way.** Shift+drag any item between the left, centre and right of the bar. Superb remembers where everything goes.
-- **Turn anything off.** Every item, tooltip section and notification can be switched off.
-- **Quiet notifications.** Short, silent cards drop from the bar for new mail, full bags, worn armour, level-ups and your pet.
-- **Light.** No libraries, no options window to learn: everything is in the bar's right-click menu.
+Superb takes a thin strip at the top or bottom of your screen and moves the rest of the interface out of its way, so nothing ends up hidden behind it. Hover an item for the detail. Right-click it for options. There is no settings window to learn.
 
-## Items
+<table>
+<tr>
+<td width="112"><img src="docs/readme/glance.jpg" width="96" alt=""></td>
+<td>
 
-| Item | On the bar | In the tooltip | Click |
-|---|---|---|---|
-| Clock | Date and time, local or realm | Local time, realm time, session length | Left: calendar |
-| Gold | Your gold | This session's change, each of your characters on the realm, total | |
-| Bag value | What your bags are worth | Vendor value, junk, auction value, most valuable items | |
-| Bag space | Free slots | Free slots per bag | Left: open bags |
-| Durability | Your most worn item, orange under 50%, red under 25% | Every damaged item | |
-| Performance | Frame rate and latency | Home and world latency, network, addon memory | |
-| Location | Zone and coordinates, in the centre | Zone, area, coordinates | Left: world map |
-| Level and XP | Level, XP and rested XP | XP, rested XP, time on this level, quest share, recent levels | |
-| XP per hour | Rate and time to the next level | Last 15 minutes, session, all time, recent sessions | |
-| Next milestone | Time to your next milestone level | Every milestone with XP and time needed | |
-| Activity | Active, idle and AFK time | The split in time and percent | |
-| XP line | A thin XP line along the bar's edge, with rested XP shaded | | |
-| Hunter pet | Portrait, name, level, mood, health and food, with a health line | Family, mood and damage, loyalty, diet, food, pet XP, training points | Left: Feed Pet. Right: Mend Pet |
+**The things you keep checking**<br>
+The time, local or realm. Your zone and coordinates, your most worn piece of gear, your frame rate and latency. Click the clock for the calendar, or the zone for the map.
 
-Right-click any item for its own options. The hunter pet uses Shift+right-click instead, because its right-click casts Mend Pet.
+</td>
+</tr>
+<tr>
+<td width="112"><img src="docs/readme/gold.jpg" width="96" alt=""></td>
+<td>
 
-### Levelling
+**Gold and bags**<br>
+Your gold, what you made this session, and the total across your characters on the realm. Free bag slots, and what your bags would fetch: auction prices if you run AuctionDB, vendor prices if you don't.
 
-- **Active time** is any movement, turning, casting, combat, click or XP gain in the last 60 seconds (30 seconds to 5 minutes). **AFK** comes from the game's AFK flag. Everything else is **idle**.
-- **XP per hour** counts active time only, so a break does not ruin your rate. The "all time" rate shows what breaks cost you.
-- **Sessions survive `/reload`** and breaks of up to 30 minutes (5 minutes to 8 hours). The last 20 sessions are kept.
-- **Milestones** default to levels 10, 20, 25, 30, 40, 50 and 60, and can be changed. XP for levels you have not reached yet is an estimate, marked `~`, until Superb has seen them.
-- Each character keeps a history of every level: time, active time, XP from quests and deaths.
-- Type `/played` once in a session to add played time to the tooltip. Superb never asks the game for it, so your chat stays clean.
+</td>
+</tr>
+<tr>
+<td width="112"><img src="docs/readme/levelling.jpg" width="96" alt=""></td>
+<td>
 
-### Hunter pet
+**Levelling you can trust**<br>
+XP per hour only counts the time you spend playing, so a cup of tea won't drag the number down. You also get time to level, time to your next milestone and a record of every level, and your session carries over a <code>/reload</code>.
 
-- Shown for hunters only, at the left of the bar.
-- **Feed Pet** picks the lowest level food in your bags within 10 levels of your pet, or the highest level food if you prefer. Superb asks the game which items your pet eats, so it works with every food.
-- **Clicks** can each be set to Feed Pet, Mend Pet or nothing.
-- **Warnings:** pet unhappy, food running low (under 3, 5, 10 or 20), loyalty up, pet died.
+</td>
+</tr>
+<tr>
+<td width="112"><img src="docs/readme/pet.jpg" width="96" alt=""></td>
+<td>
 
-### Notifications
+**A happy pet**<br>
+Hunters see their pet's mood, health and food on the bar. Left-click feeds it the right food from your bags, and right-click casts Mend Pet. Superb warns you when your pet turns unhappy or the food runs low.
 
-New mail, bags full, repair needed, level-up summaries and the four pet warnings. Each kind can be turned off under **Notifications** in the Superb menu, and **Show a test notification** previews the current theme.
+</td>
+</tr>
+<tr>
+<td width="112"><img src="docs/readme/themes.jpg" width="96" alt=""></td>
+<td>
+
+**Yours to arrange**<br>
+Five themes, from crisp light and dark to the game's own gold on dark. Hold <kbd>Shift</kbd> and drag any item to the left, centre or right of the bar, and switch off whatever you don't use.
+
+</td>
+</tr>
+<tr>
+<td width="112"><img src="docs/readme/notifications.jpg" width="96" alt=""></td>
+<td>
+
+**Quiet notifications**<br>
+Small cards drop from the bar for new mail, full bags, worn gear, level-ups and your pet. They never make a sound, and each one goes away after a few seconds.
+
+</td>
+</tr>
+</table>
 
 ## Install
 
+> Superb is still in testing and has no release yet.
+
 1. Download Superb and unzip it.
-2. Copy the `Superb` folder into `World of Warcraft/_forever_/Interface/AddOns/`.
-3. Start the game, or type `/reload` if it is running, and make sure Superb is on in the AddOns list.
+2. Put the `Superb` folder in `World of Warcraft/_forever_/Interface/AddOns/`.
+3. Start the game, or type `/reload` if it is already running.
 
-Superb is built for WoW: Forever (interface 16001).
+The bar appears at the top of the screen. Click **Superb** at its left end for the menu.
 
-## Use
+## More
 
-- **Menu:** click "Superb" at the left end of the bar, or right-click any empty part of it. Position, theme, items, notifications and "Reset item positions" are all there.
-- **Move an item:** hold Shift and drag it. A marker shows where it will land.
-- **Item options:** right-click the item (Shift+right-click for the hunter pet).
-
-| Command | Does |
-|---|---|
-| `/superb top` | Puts the bar at the top of the screen |
-| `/superb bottom` | Puts the bar at the bottom |
-| `/superb theme <name>` | Sets a theme: `defaultLight`, `defaultDark`, `minimal`, `tooltip`, `vanilla` |
-| `/superb reset` | Back to the default position and theme |
-| `/superb debug` | Prints the bar's position, for bug reports |
-
-## Good to know
-
-- **Combat.** The game does not let addons move the interface in combat, so a position change made in combat applies when combat ends. The hunter pet item keeps its size and place in combat for the same reason.
-- **Pet health in combat** is hidden from addons as a number. The health line still shows it, and the number shows whenever the game allows it.
-- **Bag value** uses auction prices from the AuctionDB addon when it is installed, and vendor prices otherwise.
-- **Mend Pet** is cast by its English name, so the right-click works on English clients for now.
-
-## Settings and saved data
-
-Settings, item positions and the gold of each character you play are saved in `SuperbDB`. Levelling history and sessions are saved per character in `SuperbLevellingDB`. Nothing leaves your computer.
-
-## For addon authors
-
-Other addons can put their own items on the bar. Add `## Dependencies: Superb` to your TOC, then:
-
-```lua
-Superb:RegisterModule({
-  id = "myaddon.hello",          -- unique
-  name = "Hello",                -- shown in the Modules menu
-  side = "right",                -- "left", "centre" or "right"
-  order = 60,                    -- lower is nearer the edge
-  events = { "PLAYER_MONEY" },   -- the item refreshes after each event
-  Text = function(widget) return "Hello" end,  -- nil hides the item
-  Tooltip = function(widget, tooltip) tooltip:AddLine("Hello from my addon") end,
-  OnClick = function(widget, button) print("Clicked with " .. button) end,
-  Menu = function(widget, root) root:CreateTitle("Hello") end,
-})
-
-Superb:RegisterNotification("myaddon.done", "Hello finished")  -- players can turn it off
-Superb:Notify("myaddon.done", "Hello", "Something happened.")
-```
-
-The full list of module fields, including `tick`, `OnRefresh` and secure items that cast spells, is at the top of the "Module API" section in [`Superb/Core.lua`](Superb/Core.lua).
-
-## Development
-
-The tests run outside the game with Lua 5.4, against a small stub of the game's API:
-
-```
-luac5.4 -p Superb/*.lua Superb/Modules/*.lua Superb/Modules/*/*.lua
-for t in tests/*_test.lua; do lua "$t"; done
-```
-
-The stub is not the game: anything it cannot copy is tested in game before a release. Agent rules for this repo are in [`AGENTS.md`](AGENTS.md).
+- [The guide](docs/GUIDE.md) covers every item, setting and command.
+- [Developing Superb](docs/DEVELOPMENT.md) shows addon authors how to put their own items on the bar, and how to run the tests.
 
 ## Licence
 
