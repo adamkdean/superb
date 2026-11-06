@@ -7,6 +7,7 @@ M.install()
 local S = M.state
 
 check.eq("toc files", table.concat(M.tocFiles("SuperbHunter"), ","), "Pet.lua,Hunter.lua")
+check.eq("superb toc", table.concat(M.tocFiles("Superb"), ","), table.concat(M.SUPERB_FILES, ","))
 
 S.class = "HUNTER"
 S.pet = { name = "Temporary", level = 10, family = "Tallstrider", happiness = 3, damage = 125, rate = 1,
@@ -40,6 +41,7 @@ check.eq("feed macro", w.attributes.macrotext1, "/cast Feed Pet\n/use 1 1")
 check.eq("right is mend", w.attributes.type2, "spell")
 check.eq("mend spell", w.attributes.spell2, "Mend Pet")
 check.eq("shift-right is free for the menu", w.attributes["shift-type2"], "")
+check.eq("shift-left is free for moving", w.attributes["shift-type1"], "")
 M.shift = true
 w.scripts.PostClick(w, "RightButton", true)
 check.eq("no menu on the down half", M.menu, nil)
@@ -89,6 +91,10 @@ M.fire("UNIT_PET", "player")
 check.eq("no pet in combat: kept but blank", w:IsShown(), true)
 check.eq("blank text", w.text, "")
 check.eq("still no blocked calls", M.blocked, 0)
+M.shift = true
+w.scripts.OnDragStart(w)
+check.eq("no drag of a secure item in combat", Superb:Bar().marker.shown, false)
+M.shift = false
 S.lockdown = false
 M.fire("PLAYER_REGEN_ENABLED")
 check.eq("hidden after combat", w:IsShown(), false)

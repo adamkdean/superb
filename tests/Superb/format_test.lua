@@ -1,7 +1,8 @@
--- Pure tests for addons/Superb/Format.lua. Run from the repo root: lua tests/Superb/format_test.lua
+-- Pure tests for addons/Superb/Format.lua and Arrange.lua. Run from the repo root: lua tests/Superb/format_test.lua
 package.path = "tests/lib/?.lua;" .. package.path
 local check = require("check")
 dofile("addons/Superb/Format.lua")
+dofile("addons/Superb/Arrange.lua")
 local F = Superb.Format
 
 check.eq("duration nil", F.Duration(nil), "-")
@@ -48,5 +49,27 @@ check.eq("money without the game", F.Money(150), "1s 50c")
 check.eq("percent", F.Percent(549, 1000), 54)
 check.eq("percent zero total", F.Percent(5, 0), 0)
 check.eq("colour", F.Colour("hi", 1, 0.82, 0), "|cffffd100hi|r")
+
+local A = Superb.Arrange
+check.eq("zone left", A.Zone(100, 900), "left")
+check.eq("zone centre", A.Zone(450, 900), "centre")
+check.eq("zone right", A.Zone(800, 900), "right")
+local items = { { id = "a", x = 50 }, { id = "c", x = 250 }, { id = "b", x = 150 } }
+local ids, before = A.Insert(items, "left", "d", 200)
+check.eq("left insert", table.concat(ids, ","), "a,b,d,c")
+check.eq("left before", before, "c")
+ids, before = A.Insert(items, "left", "d", 10)
+check.eq("left first", table.concat(ids, ","), "d,a,b,c")
+ids, before = A.Insert(items, "left", "d", 400)
+check.eq("left last", table.concat(ids, ","), "a,b,c,d")
+check.eq("left last before", before, nil)
+local right = { { id = "clock", x = 880 }, { id = "gold", x = 800 }, { id = "bags", x = 720 } }
+ids = A.Insert(right, "right", "d", 850)
+check.eq("right between clock and gold", table.concat(ids, ","), "clock,d,gold,bags")
+ids = A.Insert(right, "right", "d", 899)
+check.eq("right at the edge", table.concat(ids, ","), "d,clock,gold,bags")
+ids = A.Insert({}, "centre", "d", 450)
+check.eq("empty zone", table.concat(ids, ","), "d")
+check.eq("input not reordered", items[2].id, "c")
 
 check.done()

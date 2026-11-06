@@ -304,4 +304,67 @@ Superb:Notify("test", "Bottom", "x")
 check.eq("toast above a bottom bar", toasts()[1].points.BOTTOMRIGHT.rel, bar)
 Superb:SetPosition("top")
 
+-- Shift+drag to move items between the three zones (bar width 1000 in the mock).
+local function at(id, x) widget(id).cx = x end
+at("superb", 30) at("broken", 60) at("late", 90) at("clock", 960) at("gold", 880) at("bagvalue", 800) at("bags", 720)
+at("durability", 650) at("performance", 600) at("location", 500)
+local goldW = widget("gold")
+M.shift = false
+goldW.scripts.OnDragStart(goldW)
+check.eq("no drag without Shift", bar.marker.shown, false)
+M.shift = true
+M.cursorX = 100
+goldW.scripts.OnDragStart(goldW)
+check.eq("marker while dragging", bar.marker.shown, true)
+check.eq("marker after the last left item", bar.marker.points.LEFT.rel, widget("late"))
+goldW.scripts.OnDragStop(goldW)
+check.eq("marker gone", bar.marker.shown, false)
+check.eq("gold saved in the left zone", SuperbDB.modules.gold.side, "left")
+check.eq("gold last on the left", SuperbDB.modules.gold.order, 40)
+check.eq("superb order kept first", SuperbDB.modules.superb.order, 10)
+check.eq("gold laid out after the last left item", goldW.points.LEFT.rel, widget("late"))
+check.eq("bag value now next to the clock", widget("bagvalue").points.RIGHT.rel, widget("clock"))
+
+-- Into the right zone, between the clock and bag value.
+goldW.cx = 100
+M.cursorX = 920
+goldW.scripts.OnDragStart(goldW)
+check.eq("marker left of the clock", bar.marker.points.LEFT.rel, widget("bagvalue"))
+goldW.scripts.OnDragStop(goldW)
+check.eq("gold back on the right", SuperbDB.modules.gold.side, "right")
+check.eq("gold next to the clock", goldW.points.RIGHT.rel, widget("clock"))
+check.eq("bag value after gold", widget("bagvalue").points.RIGHT.rel, goldW)
+
+-- Into the centre, left of the location.
+M.cursorX = 420
+goldW.scripts.OnDragStart(goldW)
+goldW.scripts.OnDragStop(goldW)
+check.eq("gold in the centre", SuperbDB.modules.gold.side, "centre")
+check.eq("location after gold", widget("location").points.LEFT.rel, goldW)
+check.eq("centre group starts at the centre", goldW.points.LEFT.relPoint, "CENTER")
+
+-- Shift+left-click does not run the item's click.
+local mapBefore = M.mapToggled
+widget("location").scripts.OnClick(widget("location"), "LeftButton")
+check.eq("shift-click ignored", M.mapToggled, mapBefore)
+M.shift = false
+
+-- Saved positions survive a reload, and reset clears them.
+SuperbDB.modules.location.side = "left"
+SuperbDB.modules.location.order = 5
+local saved = SuperbDB
+M.restart(10, { SuperbDB = saved })
+M.load("Superb", M.SUPERB_FILES)
+Superb = _G.Superb
+M.fire("ADDON_LOADED", "Superb")
+M.fire("PLAYER_LOGIN")
+bar = Superb:Bar()
+check.eq("moved item kept after reload", widget("location").points.LEFT.rel, bar)
+check.eq("gold kept in the centre", widget("gold").points.LEFT.relPoint, "CENTER")
+widget("superb").scripts.OnClick(widget("superb"), "LeftButton")
+M.find(M.menu, "Reset item positions").click()
+check.eq("reset clears the side", SuperbDB.modules.gold.side, nil)
+check.eq("gold back by the clock", widget("gold").points.RIGHT.rel, widget("clock"))
+check.eq("Superb first again", widget("superb").points.LEFT.rel, bar)
+
 check.done()

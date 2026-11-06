@@ -68,6 +68,11 @@ function Region:GetPointByName(p)
 end
 function Region:SetHeight(h) self.height = h end
 function Region:SetSize(w, h) self.width, self.height = w, h end
+function Region:RegisterForDrag() end
+-- No layout engine: tests set cx (centre x) on the items they drag around.
+function Region:GetCenter() return self.cx or 0, 0 end
+function Region:GetLeft() return 0 end
+function Region:GetEffectiveScale() return 1 end
 function Region:SetWidth(w) guard(self, "SetWidth") self.width = w end
 function Region:GetHeight() return self.height end
 function Region:GetWidth() return self.width > 0 and self.width or 1000 end
@@ -130,6 +135,7 @@ function M.install()
   end
   ATTRIBUTE_NOOP = ""
   function IsShiftKeyDown() return M.shift end
+  function GetCursorPosition() return M.cursorX or 0, 0 end
   function InCombatLockdown() return S.lockdown end
   function GetTime() return M.time end
   date = os.date
@@ -318,7 +324,7 @@ function M.load(addon, files, ns)
   return ns
 end
 
-M.SUPERB_FILES = { "Format.lua", "Themes.lua", "Core.lua", "Notify.lua", "Modules/Clock.lua", "Modules/Gold.lua",
+M.SUPERB_FILES = { "Format.lua", "Arrange.lua", "Themes.lua", "Core.lua", "Notify.lua", "Modules/Clock.lua", "Modules/Gold.lua",
   "Modules/Bags.lua", "Modules/Durability.lua", "Modules/Performance.lua", "Modules/Location.lua" }
 M.LEVELLING_FILES = { "Stats.lua", "Levelling.lua", "XPLine.lua" }
 
