@@ -3,6 +3,8 @@
 ## Notes: A menu bar along the top or bottom of the screen: clock, gold, bags, durability, performance, location, levelling and hunter pet items, and notifications.
 ## Author: Adam K Dean
 ## Version: @project-version@
+## X-Curse-Project-ID: 1788069
+## X-Wago-ID: bGoY7q60
 ## SavedVariables: SuperbDB
 ## SavedVariablesPerCharacter: SuperbLevellingDB
 
