@@ -6,6 +6,9 @@ on:
   pull_request:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -32,7 +35,7 @@ jobs:
 
       # A dry run: builds the zip exactly as a release would, uploads nothing.
       - name: Package
-        uses: BigWigsMods/packager@v2
+        uses: BigWigsMods/packager@01e8631a69c69d7654c788d152630d5fed9e3812 # v2.7.0
         with:
           args: -d
 
@@ -41,3 +44,5 @@ jobs:
         with:
           name: Superb
           path: .release/*.zip
+          include-hidden-files: true   # .release starts with a dot
+          if-no-files-found: error
