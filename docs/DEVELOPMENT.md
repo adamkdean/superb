@@ -19,9 +19,12 @@ Superb:RegisterModule({
   Menu = function(widget, root) root:CreateTitle("Hello") end,
 })
 
-Superb:RegisterNotification("myaddon.done", "Hello finished")  -- players can turn it off
-Superb:Notify("myaddon.done", "Hello", "Something happened.")
+Superb:RegisterNotification("myaddon.done", "Hello finished", "good")  -- players can turn it off
+Superb:Notify("myaddon.done", "Hello", "Something happened.")          -- rings the kind's chime
+Superb:Notify("myaddon.done", "Oh no", "Something went wrong.", "bad")  -- a type for this card only
 ```
+
+A notification's type is `info` (the default), `good`, `warning` or `bad`. Each type has its own chime, so pick the one that matches what the player should feel.
 
 The full list of module fields, including `tick`, `OnRefresh` and secure items that cast spells, is at the top of the "Module API" section in [`Superb/Core.lua`](../Superb/Core.lua).
 
@@ -33,6 +36,7 @@ Superb/              the addon, shipped as-is into Interface/AddOns
   Modules/           clock, gold, bags, durability, performance, location
   Modules/Levelling/ levelling items
   Modules/Hunter/    hunter pet item
+  Sounds/            notification chimes
 tests/               Lua 5.4 tests and a small stub of the game's API
 docs/                this file, the player guide and README pictures
 ```

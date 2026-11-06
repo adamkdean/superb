@@ -22,6 +22,7 @@ Superb/                    the addon, shipped as-is into Interface/AddOns
   Modules/*.lua            core items: clock, gold, bags, durability, performance, location
   Modules/Levelling/       levelling items (Stats.lua is pure)
   Modules/Hunter/          hunter pet item (Pet.lua is pure)
+  Sounds/                  notification chimes (OGG Vorbis, 44.1 kHz, levelled to match)
 tests/                     Lua 5.4 tests, run from the repo root
   lib/check.lua            assertion helper
   lib/wowmock.lua          game stub
@@ -64,7 +65,7 @@ Consequences:
 - Saved variables load after the files run. Bind them on `ADDON_LOADED`, never at file load.
 - An item that casts spells is a secure module (`secure = true`, attributes in `Setup`). Never move, resize, show, hide or set attributes on it in combat; Core queues those. Shift+left on it is `ATTRIBUTE_NOOP` (moving), Shift+right opens its menu.
 - No automation: no casting loops, no movement, no world clicks. A spell is cast only from the player's own click on a secure button.
-- Notifications are silent. Never play a sound unless the player turns it on.
+- The only sounds are the notification chimes in `Sounds/`, one per type (info, good, warning, bad), and **Play sounds** turns them all off. Give every new notification kind the type that matches its news. Never add any other sound.
 - Never read or change another addon's files or saved variables. Read another addon's data only through its global API, in one place, with a version check (see the AuctionDB adapter in `Modules/Bags.lua`).
 
 ## Testing

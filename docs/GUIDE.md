@@ -52,7 +52,18 @@ Every item, and every section of each tooltip, can be turned off.
 
 ## Notifications
 
-Small silent cards drop from the bar for new mail, full bags, repairs, level-up summaries and the four pet warnings. Turn each kind on or off under **Notifications** in the menu. **Show a test notification** shows you one in the current theme.
+Small cards drop from the bar for new mail, full bags, repairs, level-up summaries and the four pet warnings. Turn each kind on or off under **Notifications** in the menu. **Show a test notification** shows you one in the current theme.
+
+Each card has a type, and each type has its own short, soft chime:
+
+| Type | Sounds like | Cards |
+|---|---|---|
+| Info | One soft pop | New mail, test cards |
+| Good | Two notes going up | Level-up summary, pet loyalty up |
+| Warning | The same note twice | Bags full, repair soon, pet unhappy, pet food low |
+| Bad | Two low notes going down | Item broken, pet died |
+
+When several cards arrive together, the chime plays once, unless a later card is more serious. Chimes play on the game's master volume. Untick **Play sounds** under **Notifications** to turn them off.
 
 ## Commands
 
@@ -61,6 +72,9 @@ Small silent cards drop from the bar for new mail, full bags, repairs, level-up 
 | `/superb top` | Puts the bar at the top of the screen |
 | `/superb bottom` | Puts the bar at the bottom |
 | `/superb theme <name>` | Sets a theme: `defaultLight`, `defaultDark`, `minimal`, `tooltip`, `vanilla` |
+| `/superb toast` | Shows a test notification in the current theme |
+| `/superb toast <type>` | Shows a test notification of one type, with its chime: `info`, `good`, `warning` or `bad` |
+| `/superb toast all` | Shows a test notification of every kind that is on (at most 3 at once) |
 | `/superb reset` | Back to the default position and theme |
 | `/superb debug` | Prints the bar's position, for bug reports |
 

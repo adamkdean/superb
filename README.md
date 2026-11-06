@@ -62,7 +62,7 @@ Five themes, from crisp light and dark to the game's own gold on dark. Hold <kbd
 <td>
 
 **Quiet notifications**<br>
-Small cards drop from the bar for new mail, full bags, worn gear, level-ups and your pet. They never make a sound, and each one goes away after a few seconds.
+Small cards drop from the bar for new mail, full bags, worn gear, level-ups and your pet. Good news, warnings and bad news each have their own soft chime, so you can tell them apart without looking, and one click turns the sound off.
 
 </td>
 </tr>
