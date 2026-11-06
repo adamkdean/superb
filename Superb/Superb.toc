@@ -1,0 +1,13 @@
+## Interface: 16001
+## Title: Superb
+## Notes: A menu bar along the top or bottom of the screen, with modules: clock, gold, bag space and bag value.
+## Author: Adam K Dean
+## Version: 0.1.0
+## SavedVariables: SuperbDB
+
+Format.lua
+Themes.lua
+Core.lua
+Modules\Clock.lua
+Modules\Gold.lua
+Modules\Bags.lua
