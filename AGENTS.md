@@ -26,6 +26,11 @@ tests/                     Lua 5.4 tests, run from the repo root
   lib/check.lua            assertion helper
   lib/wowmock.lua          game stub
   *_test.lua               one file per area; all_test.lua loads the whole addon in TOC order
+docs/
+  GUIDE.md                 the player guide: every item, setting and command
+  DEVELOPMENT.md           module API example, layout, tests
+  readme/                  README pictures
+  art/                     logo and emblem masters
 ```
 
 Saved variables: `SuperbDB` (account: settings, positions, gold per character) and `SuperbLevellingDB` (per character: levels, sessions).
@@ -77,4 +82,6 @@ for t in tests/*_test.lua; do lua "$t"; done
 ## Commits and docs
 
 - Conventional, atomic commits with a one-line subject.
-- Docs are matter-of-fact: no em dashes, no first person. The README is for players first, then addon authors.
+- Docs are matter-of-fact: no em dashes, no first person.
+- The README sells Superb to players: logo, badges, a short pitch, the feature grid and install. Details go in `docs/GUIDE.md` (players) and `docs/DEVELOPMENT.md` (addon authors and contributors). Every claim in any of them must match the code.
+- README pictures live in `docs/readme/` and stay small (JPEG or WebP). Full-size art masters live in `docs/art/`.
