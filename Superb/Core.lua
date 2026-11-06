@@ -50,6 +50,12 @@ local function byOrder(a, b)
   return a.id < b.id
 end
 
+-- Secure items (spell buttons) cannot be moved, resized, shown or hidden in combat. Superb catches up when
+-- combat ends. Items anchored to a secure item may still change.
+local pendingLayout = false
+local pendingSecure = {}
+local function movable(w) return not (w.secure and InCombatLockdown()) end
+
 function S:Layout()
   if not bar then return end
   local t = S:Theme()
@@ -68,24 +74,31 @@ function S:Layout()
   local prevCentre
   for _, def in ipairs(centre) do
     local w = def.widget
-    w:ClearAllPoints()
-    if prevCentre then w:SetPoint("LEFT", prevCentre, "RIGHT", t.spacing, 0) else w:SetPoint("LEFT", bar, "CENTER", -width / 2, 0) end
+    if movable(w) then
+      w:ClearAllPoints()
+      if prevCentre then w:SetPoint("LEFT", prevCentre, "RIGHT", t.spacing, 0) else w:SetPoint("LEFT", bar, "CENTER", -width / 2, 0) end
+    end
     prevCentre = w
   end
   local prev
   for _, def in ipairs(left) do
     local w = def.widget
-    w:ClearAllPoints()
-    if prev then w:SetPoint("LEFT", prev, "RIGHT", t.spacing, 0) else w:SetPoint("LEFT", bar, "LEFT", t.spacing, 0) end
+    if movable(w) then
+      w:ClearAllPoints()
+      if prev then w:SetPoint("LEFT", prev, "RIGHT", t.spacing, 0) else w:SetPoint("LEFT", bar, "LEFT", t.spacing, 0) end
+    end
     prev = w
   end
   prev = nil
   for _, def in ipairs(right) do
     local w = def.widget
-    w:ClearAllPoints()
-    if prev then w:SetPoint("RIGHT", prev, "LEFT", -t.spacing, 0) else w:SetPoint("RIGHT", bar, "RIGHT", -t.spacing, 0) end
+    if movable(w) then
+      w:ClearAllPoints()
+      if prev then w:SetPoint("RIGHT", prev, "LEFT", -t.spacing, 0) else w:SetPoint("RIGHT", bar, "RIGHT", -t.spacing, 0) end
+    end
     prev = w
   end
+  if InCombatLockdown() then pendingLayout = true end
 end
 
 local function applyPosition()
@@ -206,19 +219,27 @@ function S:Refresh(ref)
     if not ok then report(def, err) end
   end
   local show = text ~= nil and text ~= ""
-  if show then
+  local locked = not movable(w)
+  if locked and not show then text = "" end
+  if show or locked then
     if text ~= w.text then
       w.text = text
       w.label:SetText(text)
     end
-    local width = math.ceil(w.label:GetStringWidth()) + 2 * S:Theme().pad
+    local width = math.ceil(w.label:GetStringWidth()) + 2 * S:Theme().pad + (w.leftInset or 0)
     if width ~= w.width then
-      w.width = width
-      w:SetWidth(width)
-      if def.side == "centre" and w:IsShown() then S:Layout() end
+      if locked then
+        pendingLayout = true
+      else
+        w.width = width
+        w:SetWidth(width)
+        if def.side == "centre" and w:IsShown() then S:Layout() end
+      end
     end
   end
-  if show ~= w:IsShown() then
+  if locked then
+    if show ~= w:IsShown() then pendingLayout = true end
+  elseif show ~= w:IsShown() then
     w:SetShown(show)
     S:Layout()
   end
@@ -252,19 +273,46 @@ local function onClick(w, button)
   end
 end
 
+local function setupSecure(def)
+  local w = def.widget
+  if not w or not w.secure then return end
+  if InCombatLockdown() then pendingSecure[def] = true return end
+  pendingSecure[def] = nil
+  w:SetAttribute("shift-type2", ATTRIBUTE_NOOP) -- Shift+right-click opens the menu (PostClick)
+  if def.Setup then def.Setup(w) end
+end
+
+-- Sets a secure item's attributes again, now or when combat ends.
+function S:Setup(ref)
+  setupSecure(type(ref) == "table" and ref or byId[ref])
+end
+
+local function onPostClick(w, button, down)
+  if down then return end
+  if button == "RightButton" and IsShiftKeyDown() then S:OpenMenu(w) end
+end
+
 local function createWidget(def)
-  local w = CreateFrame("Button", nil, bar)
+  if def.secure and InCombatLockdown() then pendingSecure[def] = "create" return end
+  local w = CreateFrame("Button", nil, bar, def.secure and "SecureActionButtonTemplate" or nil)
   w.def = def
+  w.secure = def.secure and true or nil
   w.hl = w:CreateTexture(nil, "BACKGROUND", nil, 1)
   w.hl:SetPoint("TOPLEFT", 0, -2)
   w.hl:SetPoint("BOTTOMRIGHT", 0, 2)
   w.hl:Hide()
   w.label = w:CreateFontString(nil, "OVERLAY")
   w.label:SetPoint("CENTER")
-  w:RegisterForClicks("LeftButtonUp", "RightButtonUp")
   w:SetScript("OnEnter", onEnter)
   w:SetScript("OnLeave", onLeave)
-  w:SetScript("OnClick", onClick)
+  if w.secure then
+    -- Down and up, so the click works whatever the "cast on key down" setting is (SecureTemplates.lua).
+    w:RegisterForClicks("AnyUp", "AnyDown")
+    w:SetScript("PostClick", onPostClick)
+  else
+    w:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    w:SetScript("OnClick", onClick)
+  end
   w:Hide()
   def.widget = w
   styleWidget(w, S:Theme())
@@ -278,6 +326,7 @@ local function createWidget(def)
     end
   end
   if def.OnLoad then def.OnLoad(w) end
+  setupSecure(def)
   S:Refresh(def)
 end
 
@@ -293,6 +342,11 @@ end
 --                                                    event unless OnEvent returns false
 --   tick = true,                                         -- optional, refresh every second
 --   OnLoad = function(widget) end,                       -- optional, once, after saved data is loaded
+--   secure = true, Setup = function(widget) end,         -- optional: a SecureActionButtonTemplate item that casts
+--                                                        -- spells; Setup sets its attributes, out of combat only.
+--                                                        -- Shift+right-click opens its menu. Call Superb:Setup(id)
+--                                                        -- when the attributes must change.
+--   widget.leftInset = pixels                            -- optional, room for an icon left of the text
 --   OnRefresh = function(widget, enabled) end,           -- optional, after each refresh, for items that draw
 --                                                        -- on the bar instead of showing text
 --   defaultEnabled = false,                              -- optional
@@ -426,8 +480,21 @@ events:SetScript("OnEvent", function(self, event, name)
     DB = SuperbDB
   elseif event == "PLAYER_LOGIN" then
     start()
-  elseif event == "PLAYER_REGEN_ENABLED" and pendingPosition then
-    applyPosition()
+  elseif event == "PLAYER_REGEN_ENABLED" then
+    if pendingPosition then applyPosition() end
+    for def, what in pairs(pendingSecure) do
+      if what == "create" then
+        pendingSecure[def] = nil
+        createWidget(def)
+      else
+        setupSecure(def)
+      end
+    end
+    if pendingLayout then
+      pendingLayout = false
+      S:RefreshAll()
+      S:Layout()
+    end
   end
 end)
 
