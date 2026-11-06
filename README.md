@@ -2,14 +2,14 @@
 
 <img src="docs/readme/logo.webp" alt="Superb" width="560">
 
-**Everything you keep checking, in one bar along the edge of your screen.**<br>
-A World of Warcraft: Forever addon for your gold, your bags, your XP rate and your pet.
+**A heads-up display for World of Warcraft: Forever, in one bar.**<br>
+Your gold, bags, XP rate, gear and pet, live along the edge of your screen while you play.
 
 ![Status: pre-release](https://img.shields.io/badge/status-pre--release-c9a227?style=flat-square) ![WoW: Forever](https://img.shields.io/badge/WoW-Forever-1f4e8c?style=flat-square) ![Interface 16001](https://img.shields.io/badge/interface-16001-555555?style=flat-square) ![Lua](https://img.shields.io/badge/Lua-2C2D72?style=flat-square&logo=lua&logoColor=white) ![Libraries: none](https://img.shields.io/badge/libraries-none-4a7a32?style=flat-square) ![Licence: MIT](https://img.shields.io/badge/licence-MIT-6b6b6b?style=flat-square)
 
 </div>
 
-Superb puts a bar at the top or bottom of your screen and moves the rest of the interface out of its way, so nothing ends up hidden behind it. Hover an item for the detail. Right-click it for options. There is no settings window to learn.
+Superb is a bar that runs along the top or bottom of your screen and keeps the numbers you care about up to date: what you're carrying, how fast you're levelling, how worn your gear is and how your pet is doing. The rest of your interface shifts over to make room, so nothing hides behind it. Glance at it mid-fight, hover an item for the full picture, right-click it for options. There is no settings window to learn.
 
 <table>
 <tr>
@@ -67,6 +67,10 @@ Small cards drop from the bar for new mail, full bags, worn gear, level-ups and 
 </td>
 </tr>
 </table>
+
+## More on the way
+
+Every item on the bar is a module, so new ones slot straight in, and more are coming. If there's something you'd like Superb to show you, [request a feature](https://github.com/adamkdean/superb/issues/new?labels=feature) and say what it is and why you want it. Found something broken? [Report a bug](https://github.com/adamkdean/superb/issues/new?labels=bug).
 
 ## Install
 
