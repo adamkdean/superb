@@ -21,6 +21,7 @@ local DB = copyDefaults({}, DEFAULTS)
 local bar, ticker
 local baseTop = 0          -- Blizzard's own top offset (notch, debug bars)
 local pendingPosition = false
+local expectTop, expectBottom -- the UIParent offsets Superb last set
 local tipWidget
 local reported = {}
 
@@ -94,22 +95,41 @@ local function applyPosition()
   local t = S:Theme()
   local h = t.height
   local top = DB.position ~= "bottom"
-  UIParent:SetPoint("TOPLEFT", 0, -(baseTop + (top and h or 0)))
-  UIParent:SetPoint("BOTTOMRIGHT", 0, top and 0 or h)
+  expectTop, expectBottom = -(baseTop + (top and h or 0)), top and 0 or h
+  UIParent:SetPoint("TOPLEFT", 0, expectTop)
+  UIParent:SetPoint("BOTTOMRIGHT", 0, expectBottom)
+  -- The bar hangs on the screen edge (WorldFrame), not on UIParent's moving edge, so it stays on screen even
+  -- if something else moves UIParent back.
   bar:ClearAllPoints()
   bar.edge:ClearAllPoints()
   if top then
-    bar:SetPoint("BOTTOMLEFT", UIParent, "TOPLEFT")
-    bar:SetPoint("BOTTOMRIGHT", UIParent, "TOPRIGHT")
+    bar:SetPoint("TOPLEFT", WorldFrame, "TOPLEFT", 0, -baseTop)
+    bar:SetPoint("TOPRIGHT", WorldFrame, "TOPRIGHT", 0, -baseTop)
     bar.edge:SetPoint("BOTTOMLEFT")
     bar.edge:SetPoint("BOTTOMRIGHT")
   else
-    bar:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT")
-    bar:SetPoint("TOPRIGHT", UIParent, "BOTTOMRIGHT")
+    bar:SetPoint("BOTTOMLEFT", WorldFrame, "BOTTOMLEFT")
+    bar:SetPoint("BOTTOMRIGHT", WorldFrame, "BOTTOMRIGHT")
     bar.edge:SetPoint("TOPLEFT")
     bar.edge:SetPoint("TOPRIGHT")
   end
   bar:SetHeight(h)
+end
+
+-- UIParent's offset as a number, or nil when it cannot be read.
+local function offsetY(point)
+  local ok, _, _, _, _, y = pcall(UIParent.GetPointByName, UIParent, point)
+  if not ok or type(y) ~= "number" or (issecretvalue and issecretvalue(y)) then return nil end
+  return y
+end
+
+-- Puts the offset back if something else moved UIParent. Runs every second, out of combat only.
+local function healPosition()
+  if not bar or not expectTop or InCombatLockdown() then return end
+  local top, bottom = offsetY("TOPLEFT"), offsetY("BOTTOMRIGHT")
+  if (top and math.abs(top - expectTop) > 0.5) or (bottom and math.abs(bottom - expectBottom) > 0.5) then
+    applyPosition()
+  end
 end
 
 -- Theme -----------------------------------------------------------------------------------------------------
@@ -379,6 +399,7 @@ local function start()
   S:Layout()
   applyPosition()
   ticker = C_Timer.NewTicker(1, function()
+    healPosition()
     for _, def in ipairs(S.modules) do
       if def.tick then S:Refresh(def) end
     end
@@ -388,8 +409,8 @@ end
 
 if type(UpdateUIParentPosition) == "function" then
   hooksecurefunc("UpdateUIParentPosition", function()
-    local _, _, _, _, y = UIParent:GetPointByName("TOPLEFT")
-    baseTop = (y and y < 0) and -y or 0
+    local y = offsetY("TOPLEFT")
+    if y then baseTop = y < 0 and -y or 0 end
     applyPosition()
   end)
 end
@@ -425,12 +446,19 @@ SlashCmdList.SUPERB = function(msg)
     if not (found and S:SetTheme(found)) then
       print("Superb themes: " .. table.concat(S.Themes.order, ", "))
     end
+  elseif cmd == "debug" then
+    local function n(v) return v and ("%.1f"):format(v) or "?" end
+    print(("Superb: position %s, theme %s, height %s, Blizzard top %s, combat %s, waiting %s"):format(
+      DB.position, DB.theme, n(S:Theme().height), n(baseTop), tostring(InCombatLockdown()), tostring(pendingPosition)))
+    print(("Superb: UIParent top %s (want %s), bottom %s (want %s); bar shown %s, top %s, bottom %s"):format(
+      n(offsetY("TOPLEFT")), n(expectTop), n(offsetY("BOTTOMRIGHT")), n(expectBottom),
+      tostring(bar and bar:IsVisible()), n(bar and bar:GetTop()), n(bar and bar:GetBottom())))
   elseif cmd == "reset" then
     DB.position, DB.theme = DEFAULTS.position, DEFAULTS.theme
     S:SetTheme(DB.theme)
     S:SetPosition(DB.position)
   else
-    print("Superb: /superb top | bottom | theme <name> | reset. Right-click the bar for the menu.")
+    print("Superb: /superb top | bottom | theme <name> | reset | debug. Right-click the bar for the menu.")
     if bar then S:OpenMenu(nil) end
   end
 end

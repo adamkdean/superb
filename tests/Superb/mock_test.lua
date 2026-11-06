@@ -31,21 +31,45 @@ check.ok("bar created", bar ~= nil)
 local h = Superb.Themes.vanilla.height
 check.eq("bottom: UIParent bottom raised", UIParent.points.BOTTOMRIGHT.y, h)
 check.eq("bottom: UIParent top unchanged", UIParent.points.TOPLEFT.y, 0)
-check.eq("bottom: bar under UIParent", bar.points.TOPLEFT.rel, UIParent)
-check.eq("bottom: bar anchor", bar.points.TOPLEFT.relPoint, "BOTTOMLEFT")
+check.eq("bottom: bar on the screen bottom", bar.points.BOTTOMLEFT.rel, WorldFrame)
+check.eq("bottom: bar anchor", bar.points.BOTTOMLEFT.relPoint, "BOTTOMLEFT")
 check.eq("bar height", bar.height, h)
 
 -- Blizzard's own top offset (notch) is kept when the bar is at the top.
 Superb:SetPosition("top")
 check.eq("top: UIParent top lowered", UIParent.points.TOPLEFT.y, -h)
 check.eq("top: UIParent bottom reset", UIParent.points.BOTTOMRIGHT.y, 0)
-check.eq("top: bar above UIParent", bar.points.BOTTOMLEFT.relPoint, "TOPLEFT")
+check.eq("top: bar on the screen top", bar.points.TOPLEFT.relPoint, "TOPLEFT")
 S.topOffset = 10
 UpdateUIParentPosition()
 check.eq("notch offset added", UIParent.points.TOPLEFT.y, -(10 + h))
+check.eq("bar under the notch", bar.points.TOPLEFT.y, -10)
 S.topOffset = 0
 UpdateUIParentPosition()
 check.eq("notch offset removed", UIParent.points.TOPLEFT.y, -h)
+
+-- Something resets UIParent's top without the hook (seen in game: the bar could not return to the top).
+-- The bar stays on the screen edge, and the UI offset is put back within a second, out of combat only.
+UIParent:SetPoint("TOPLEFT", 0, 0)
+check.eq("bar anchored to the screen, not to UIParent", bar.points.TOPLEFT.rel, WorldFrame)
+check.eq("bar at the very top", bar.points.TOPLEFT.y, 0)
+M.tick()
+check.eq("offset healed", UIParent.points.TOPLEFT.y, -h)
+S.lockdown = true
+UIParent:SetPoint("TOPLEFT", 0, 0)
+M.tick()
+check.eq("no healing in combat", UIParent.points.TOPLEFT.y, 0)
+S.lockdown = false
+M.tick()
+check.eq("healed after combat", UIParent.points.TOPLEFT.y, -h)
+
+-- A failing point read in the hook does not stop the bar.
+local realGet = UIParent.GetPointByName
+UIParent.GetPointByName = function() error("no point") end
+UpdateUIParentPosition()
+UIParent.GetPointByName = realGet
+M.tick()
+check.eq("hook error survived", UIParent.points.TOPLEFT.y, -h)
 
 -- No anchor changes in combat; applied when combat ends.
 S.lockdown = true
@@ -174,6 +198,8 @@ local okDup = pcall(Superb.RegisterModule, Superb, { id = "late", Text = functio
 check.eq("duplicate id refused", okDup, false)
 
 -- Slash command.
+SlashCmdList.SUPERB("debug")
+check.ok("debug prints the state", M.printed[#M.printed]:find("UIParent", 1, true) ~= nil)
 SlashCmdList.SUPERB("bottom")
 check.eq("slash bottom", SuperbDB.position, "bottom")
 SlashCmdList.SUPERB("theme DEFAULTLIGHT")

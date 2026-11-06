@@ -64,6 +64,9 @@ function Region:Show() self.shown = true end
 function Region:Hide() self.shown = false end
 function Region:SetShown(v) self.shown = v and true or false end
 function Region:IsShown() return self.shown end
+function Region:IsVisible() return self.shown end
+function Region:GetTop() return 768 end
+function Region:GetBottom() return 744 end
 function Region:SetScript(n, fn) self.scripts[n] = fn end
 function Region:RegisterEvent(e)
   if M.invalidEvents and M.invalidEvents[e] then error("unknown event " .. e) end
@@ -97,6 +100,7 @@ function Region:GetStringWidth() return #(self.text or "") * 7 end
 local S = M.state
 
 function M.install()
+  WorldFrame = new("Frame")
   UIParent = new("Frame")
   UIParent:SetPoint("TOPLEFT")
   UIParent:SetPoint("BOTTOMRIGHT")
