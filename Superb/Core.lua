@@ -52,15 +52,25 @@ end
 function S:Layout()
   if not bar then return end
   local t = S:Theme()
-  local left, right = {}, {}
+  local left, right, centre = {}, {}, {}
   for _, def in ipairs(S.modules) do
     if def.widget and def.widget:IsShown() then
-      local list = def.side == "right" and right or left
+      local list = def.side == "right" and right or def.side == "centre" and centre or left
       list[#list + 1] = def
     end
   end
   table.sort(left, byOrder)
   table.sort(right, byOrder)
+  table.sort(centre, byOrder)
+  local width = 0
+  for n, def in ipairs(centre) do width = width + (def.widget.width or 0) + (n > 1 and t.spacing or 0) end
+  local prevCentre
+  for _, def in ipairs(centre) do
+    local w = def.widget
+    w:ClearAllPoints()
+    if prevCentre then w:SetPoint("LEFT", prevCentre, "RIGHT", t.spacing, 0) else w:SetPoint("LEFT", bar, "CENTER", -width / 2, 0) end
+    prevCentre = w
+  end
   local prev
   for _, def in ipairs(left) do
     local w = def.widget
@@ -166,9 +176,14 @@ function S:Refresh(ref)
   local w = def and def.widget
   if not w then return end
   local text
-  if S:IsEnabled(def) then
+  local enabled = S:IsEnabled(def)
+  if enabled then
     local ok, res = pcall(def.Text, w)
     if ok then text = res else report(def, res) text = "?" end
+  end
+  if def.OnRefresh then
+    local ok, err = pcall(def.OnRefresh, w, enabled)
+    if not ok then report(def, err) end
   end
   local show = text ~= nil and text ~= ""
   if show then
@@ -180,6 +195,7 @@ function S:Refresh(ref)
     if width ~= w.width then
       w.width = width
       w:SetWidth(width)
+      if def.side == "centre" and w:IsShown() then S:Layout() end
     end
   end
   if show ~= w:IsShown() then
@@ -247,7 +263,8 @@ end
 
 -- Module API ------------------------------------------------------------------------------------------------
 -- def = {
---   id = "unique", name = "Menu label", side = "left" | "right", order = number (lower is nearer the edge),
+--   id = "unique", name = "Menu label", side = "left" | "centre" | "right", order = number (lower is nearer
+--   the edge; in the centre, lower is further left),
 --   Text = function(widget) return "bar text" end,       -- nil or "" hides the item
 --   Tooltip = function(widget, GameTooltip) end,         -- optional
 --   OnClick = function(widget, button) end,              -- optional, left click
@@ -256,13 +273,16 @@ end
 --                                                    event unless OnEvent returns false
 --   tick = true,                                         -- optional, refresh every second
 --   OnLoad = function(widget) end,                       -- optional, once, after saved data is loaded
+--   OnRefresh = function(widget, enabled) end,           -- optional, after each refresh, for items that draw
+--                                                        -- on the bar instead of showing text
 --   defaultEnabled = false,                              -- optional
 -- }
+-- Superb:AddMenu(function(rootDescription) end) adds a section to the Superb menu.
 
 function S:RegisterModule(def)
   assert(type(def.id) == "string" and not byId[def.id], "Superb: a module needs a unique id")
   assert(type(def.Text) == "function", "Superb: a module needs a Text function")
-  def.side = def.side == "right" and "right" or "left"
+  def.side = (def.side == "right" or def.side == "centre") and def.side or "left"
   def.order = def.order or 50
   def.name = def.name or def.id
   byId[def.id] = def
@@ -283,6 +303,7 @@ function S:SetPosition(position)
   DB.position = position == "bottom" and "bottom" or "top"
   hideTooltip()
   applyPosition()
+  S:RefreshAll()
 end
 
 function S:SetTheme(key)
@@ -297,6 +318,9 @@ function S:SetTheme(key)
 end
 
 -- Menu ------------------------------------------------------------------------------------------------------
+
+local menuExtras = {}
+function S:AddMenu(fn) menuExtras[#menuExtras + 1] = fn end
 
 local function buildMenu(root)
   root:CreateTitle("Superb")
@@ -318,6 +342,7 @@ local function buildMenu(root)
   local function isOn(def) return S:IsEnabled(def) end
   local function toggle(def) S:SetEnabled(def, not S:IsEnabled(def)) end
   for _, def in ipairs(sorted) do modules:CreateCheckbox(def.name, isOn, toggle, def) end
+  for _, fn in ipairs(menuExtras) do fn(root) end
 end
 
 function S:OpenMenu(owner)
