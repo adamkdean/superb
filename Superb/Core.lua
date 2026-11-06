@@ -616,12 +616,14 @@ SlashCmdList.SUPERB = function(msg)
     print(("Superb: UIParent top %s (want %s), bottom %s (want %s); bar shown %s, top %s, bottom %s"):format(
       n(offsetY("TOPLEFT")), n(expectTop), n(offsetY("BOTTOMRIGHT")), n(expectBottom),
       tostring(bar and bar:IsVisible()), n(bar and bar:GetTop()), n(bar and bar:GetBottom())))
+  elseif cmd == "toast" then
+    S:TestNotify(arg)
   elseif cmd == "reset" then
     DB.position, DB.theme = DEFAULTS.position, DEFAULTS.theme
     S:SetTheme(DB.theme)
     S:SetPosition(DB.position)
   else
-    print("Superb: /superb top | bottom | theme <name> | reset | debug. Right-click the bar for the menu.")
+    print("Superb: /superb top | bottom | theme <name> | toast [all] | reset | debug. Right-click the bar for the menu.")
     if bar then S:OpenMenu(nil) end
   end
 end

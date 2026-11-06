@@ -124,7 +124,23 @@ function S:Notify(kind, title, text)
   return true
 end
 
-def = S:RegisterModule({
+-- Test cards for the menu and /superb toast: one card, or with "all" one card of every kind that is on, to check
+-- stacking and the cap.
+function S:TestNotify(which)
+  if not S:IsEnabled(def) then
+    print("Superb: notifications are off. Turn them on under Modules.")
+  elseif which == "all" then
+    local n = 0
+    for _, kind in ipairs(order) do
+      if S:Notify(kind, kinds[kind], "A test of this notification.") then n = n + 1 end
+    end
+    print(("Superb: showed %d test notifications (%d kinds turned off). At most %d show at once."):format(n, #order - n, MAX))
+  else
+    S:Notify("test", "Superb", "This is how a notification looks with this theme.")
+  end
+end
+
+def =S:RegisterModule({
   id = "notifications", name = "Notifications", side = "right", order = 1000,
   Text = function() return nil end,
 })
@@ -135,13 +151,7 @@ S:AddMenu(function(root)
   local function toggle(kind) cfg()[kind] = cfg()[kind] == false end
   for _, kind in ipairs(order) do sub:CreateCheckbox(kinds[kind], isOn, toggle, kind) end
   sub:CreateDivider()
-  sub:CreateButton("Show a test notification", function()
-    if not S:IsEnabled(def) then
-      print("Superb: notifications are off. Turn them on under Modules.")
-    else
-      S:Notify("test", "Superb", "This is how a notification looks with this theme.")
-    end
-  end)
+  sub:CreateButton("Show a test notification", function() S:TestNotify() end)
 end)
 
 -- New mail, from the same calls the minimap mail icon uses (Blizzard_Minimap/Mainline/Minimap.lua).

@@ -295,7 +295,25 @@ M.find(M.menu, "Show a test notification").click()
 check.eq("test toast", #toasts(), 1)
 Superb:SetEnabled(select(2, widget("notifications")), false)
 check.eq("all off", Superb:Notify("test", "x", "y"), false)
+SlashCmdList.SUPERB("toast")
+check.ok("toast while off says so", M.printed[#M.printed]:find("notifications are off", 1, true) ~= nil)
 Superb:SetEnabled(select(2, widget("notifications")), true)
+
+-- /superb toast: one test card; /superb toast all: one card of every kind that is on.
+M.tick(8)
+for _, t in ipairs(toasts()) do t.scripts.OnUpdate(t) end
+SlashCmdList.SUPERB("toast")
+check.eq("slash toast", #toasts(), 1)
+check.eq("slash toast title", toasts()[1].title.text, "Superb")
+M.time = M.time + 0.1
+SlashCmdList.SUPERB("toast all")
+check.eq("toast all keeps the cap", #toasts(), 3)
+local titles = {}
+for _, t in ipairs(toasts()) do titles[#titles + 1] = t.title.text end
+check.eq("toast all skips kinds turned off", table.concat(titles, ","):find("New mail", 1, true), nil)
+check.ok("toast all reports the count", M.printed[#M.printed]:find("test notifications", 1, true) ~= nil)
+M.tick(8)
+for _, t in ipairs(toasts()) do t.scripts.OnUpdate(t) end
 
 -- Toasts rise from a bottom bar.
 Superb:SetPosition("bottom")
