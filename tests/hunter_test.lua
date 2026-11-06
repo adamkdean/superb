@@ -29,7 +29,7 @@ check.ok("pet item for a hunter", w ~= nil)
 check.eq("secure template", w.template, "SecureActionButtonTemplate")
 check.eq("text", w.text, "Temporary 10 · |cff4de64dHappy|r · 268/283 · |T111:0|t6") -- icon of the food it will use
 check.eq("portrait", w.icon.portrait, "pet")
-check.eq("health line", w.line.value, 268)
+check.eq("no health line", w.line, nil)
 check.eq("after the Superb item", w.points.LEFT.rel, find("superb"))
 
 -- Clicks: feed with the lowest food that works. For a level 10 pet, the level 5 cheese is within 10 levels.
@@ -68,17 +68,14 @@ M.find(M.menu, "Loyalty trend").select()
 w.scripts.OnEnter(w)
 check.eq("trend off", table.concat(GameTooltip.lines, "\n"):find("Loyalty is", 1, true), nil)
 w.scripts.OnLeave(w)
-M.find(M.menu, "Health line").select()
-check.eq("line off", w.line.shown, false)
+check.eq("no health line option", M.find(M.menu, "Health line"), nil)
 
 -- Combat: health turns secret, nothing on the secure item moves or changes attributes, catch-up afterwards.
 M.find(M.menu, "Health").select()
-M.find(M.menu, "Health line").select()
 S.lockdown = true
 M.blocked = 0
 M.fire("UNIT_HEALTH", "pet")
 check.eq("secret health not in the text", w.text:find("/", 1, true), nil)
-check.eq("secret health on the line", w.line.value, "SECRET")
 S.bags[1].items[2] = nil
 M.fire("BAG_UPDATE_DELAYED")
 check.eq("no blocked calls in combat", M.blocked, 0)

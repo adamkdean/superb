@@ -10,7 +10,7 @@ local MEND_PET = "Mend Pet"       -- by name: its spell ID on Forever is not in 
 local ICON = 16
 
 local DEFAULTS = {
-  show = { name = true, level = true, mood = true, health = true, food = true, line = true },
+  show = { name = true, level = true, mood = true, health = true, food = true },
   tip = { xp = true, loyalty = true, foods = true },
   left = "feed", right = "mend", foodMode = "lowest", lowFood = 5,
 }
@@ -130,11 +130,6 @@ def = {
     w.icon = w:CreateTexture(nil, "ARTWORK")
     w.icon:SetSize(ICON, ICON)
     w.icon:SetPoint("LEFT", S:Theme().pad, 0)
-    w.line = CreateFrame("StatusBar", nil, w)
-    w.line:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar") -- the unit frame bar texture
-    w.line:SetHeight(2)
-    w.line:SetPoint("BOTTOMLEFT", S:Theme().pad + ICON + 4, 3)
-    w.line:SetPoint("BOTTOMRIGHT", -S:Theme().pad, 3)
     for _, e in ipairs({ "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_LEVEL" }) do pcall(w.RegisterUnitEvent, w, e, "pet") end
     last.food = Pet.CountFood(foodInBags())
   end,
@@ -193,15 +188,6 @@ def = {
     local on = enabled and hasPet()
     if on then SetPortraitTexture(w.icon, "pet") end
     w.icon:SetShown(on and true or false)
-    local line = on and cfg().show.line
-    w.line:SetShown(line and true or false)
-    if line then
-      -- Health is secret in combat. A status bar takes secret values; Lua maths on them is not allowed.
-      w.line:SetMinMaxValues(0, UnitHealthMax("pet"))
-      w.line:SetValue(UnitHealth("pet"))
-      local m = Pet.MOODS[mood() or 3]
-      w.line:SetStatusBarColor(m.r, m.g, m.b, 0.9)
-    end
   end,
 
   Tooltip = function(_, tip)
@@ -245,8 +231,8 @@ def = {
     local bar = root:CreateButton("Bar shows")
     local function isShow(k) return c.show[k] end
     local function toggleShow(k) c.show[k] = not c.show[k] S:Refresh(ID) end
-    for _, k in ipairs({ "name", "level", "mood", "health", "food", "line" }) do
-      local labels = { name = "Name", level = "Level", mood = "Mood", health = "Health", food = "Food count", line = "Health line" }
+    for _, k in ipairs({ "name", "level", "mood", "health", "food" }) do
+      local labels = { name = "Name", level = "Level", mood = "Mood", health = "Health", food = "Food count" }
       bar:CreateCheckbox(labels[k], isShow, toggleShow, k)
     end
     local tipMenu = root:CreateButton("Tooltip shows")
