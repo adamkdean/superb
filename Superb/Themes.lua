@@ -6,15 +6,15 @@ local ARIAL = "Fonts\\ARIALN.TTF"
 local FRIZ = "Fonts\\FRIZQT__.TTF"
 
 Superb.Themes = {
-  order = { "macLight", "macDark", "minimal", "tooltip", "vanilla" },
+  order = { "defaultLight", "defaultDark", "minimal", "tooltip", "vanilla" },
 
-  macLight = {
-    name = "macOS Light", height = 24, font = ARIAL, size = 14, flags = "", shadow = false,
+  defaultLight = {
+    name = "Default Light", height = 24, font = ARIAL, size = 14, flags = "", shadow = false,
     bg = { 0.96, 0.96, 0.97, 0.82 }, edge = { 0, 0, 0, 0.18 }, edgeSize = 1,
     text = { 0.08, 0.08, 0.08, 1 }, highlight = { 0, 0, 0, 0.10 }, pad = 9, spacing = 6,
   },
-  macDark = {
-    name = "macOS Dark", height = 24, font = ARIAL, size = 14, flags = "", shadow = false,
+  defaultDark = {
+    name = "Default Dark", height = 24, font = ARIAL, size = 14, flags = "", shadow = false,
     bg = { 0.11, 0.11, 0.12, 0.80 }, edge = { 1, 1, 1, 0.10 }, edgeSize = 1,
     text = { 0.95, 0.95, 0.95, 1 }, highlight = { 1, 1, 1, 0.16 }, pad = 9, spacing = 6,
   },
@@ -36,4 +36,4 @@ Superb.Themes = {
   },
 }
 
-Superb.DEFAULT_THEME = "macDark"
+Superb.DEFAULT_THEME = "defaultDark"

@@ -57,14 +57,14 @@ check.eq("after combat: moved", UIParent.points.BOTTOMRIGHT.y, h)
 check.eq("position saved", SuperbDB.position, "bottom")
 
 -- Theme change resizes the bar and the offset.
-check.ok("theme set", Superb:SetTheme("macDark"))
-check.eq("theme saved", SuperbDB.theme, "macDark")
-check.eq("new height", bar.height, Superb.Themes.macDark.height)
-check.eq("offset follows height", UIParent.points.BOTTOMRIGHT.y, Superb.Themes.macDark.height)
+check.ok("theme set", Superb:SetTheme("defaultDark"))
+check.eq("theme saved", SuperbDB.theme, "defaultDark")
+check.eq("new height", bar.height, Superb.Themes.defaultDark.height)
+check.eq("offset follows height", UIParent.points.BOTTOMRIGHT.y, Superb.Themes.defaultDark.height)
 check.eq("bad theme refused", Superb:SetTheme("nope"), false)
 check.eq("order is not a theme", Superb:SetTheme("order"), false)
 for _, key in ipairs(Superb.Themes.order) do check.ok("theme " .. key, Superb:SetTheme(key)) end
-Superb:SetTheme("macDark")
+Superb:SetTheme("defaultDark")
 
 local function widget(id)
   for _, def in ipairs(Superb.modules) do if def.id == id then return def.widget, def end end
@@ -176,12 +176,12 @@ check.eq("duplicate id refused", okDup, false)
 -- Slash command.
 SlashCmdList.SUPERB("bottom")
 check.eq("slash bottom", SuperbDB.position, "bottom")
-SlashCmdList.SUPERB("theme MACLIGHT")
-check.eq("slash theme", SuperbDB.theme, "macLight")
+SlashCmdList.SUPERB("theme DEFAULTLIGHT")
+check.eq("slash theme", SuperbDB.theme, "defaultLight")
 SlashCmdList.SUPERB("theme nope")
-check.ok("slash lists themes", M.printed[#M.printed]:find("macLight", 1, true) ~= nil)
+check.ok("slash lists themes", M.printed[#M.printed]:find("defaultLight", 1, true) ~= nil)
 SlashCmdList.SUPERB("reset")
 check.eq("reset position", SuperbDB.position, "top")
-check.eq("reset theme", SuperbDB.theme, "macDark")
+check.eq("reset theme", SuperbDB.theme, "defaultDark")
 
 check.done()
