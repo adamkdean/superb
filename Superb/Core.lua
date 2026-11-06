@@ -45,8 +45,20 @@ end
 
 -- Layout ----------------------------------------------------------------------------------------------------
 
+-- Where an item sits: the player's choice (Shift+drag) if any, else the module's default.
+function S:Side(def)
+  local m = DB.modules[def.id]
+  return m and m.side or def.side
+end
+
+function S:Order(def)
+  local m = DB.modules[def.id]
+  return m and m.order or def.order
+end
+
 local function byOrder(a, b)
-  if a.order ~= b.order then return a.order < b.order end
+  local oa, ob = S:Order(a), S:Order(b)
+  if oa ~= ob then return oa < ob end
   return a.id < b.id
 end
 
@@ -62,7 +74,8 @@ function S:Layout()
   local left, right, centre = {}, {}, {}
   for _, def in ipairs(S.modules) do
     if def.widget and def.widget:IsShown() then
-      local list = def.side == "right" and right or def.side == "centre" and centre or left
+      local side = S:Side(def)
+      local list = side == "right" and right or side == "centre" and centre or left
       list[#list + 1] = def
     end
   end
@@ -184,7 +197,7 @@ function S:RenderTooltip(w)
   local tip = GameTooltip
   tip:SetOwner(w, "ANCHOR_NONE")
   tip:ClearAllPoints()
-  local right = w.def.side == "right"
+  local right = S:Side(w.def) == "right"
   if DB.position == "bottom" then
     tip:SetPoint(right and "BOTTOMRIGHT" or "BOTTOMLEFT", w, right and "TOPRIGHT" or "TOPLEFT", 0, 2)
   else
@@ -233,7 +246,7 @@ function S:Refresh(ref)
       else
         w.width = width
         w:SetWidth(width)
-        if def.side == "centre" and w:IsShown() then S:Layout() end
+        if S:Side(def) == "centre" and w:IsShown() then S:Layout() end
       end
     end
   end
@@ -266,6 +279,7 @@ local function onLeave(w)
 end
 
 local function onClick(w, button)
+  if button == "LeftButton" and IsShiftKeyDown() then return end -- Shift+left is for moving
   if button == "RightButton" then
     S:OpenMenu(w)
   elseif w.def.OnClick then
@@ -278,6 +292,7 @@ local function setupSecure(def)
   if not w or not w.secure then return end
   if InCombatLockdown() then pendingSecure[def] = true return end
   pendingSecure[def] = nil
+  w:SetAttribute("shift-type1", ATTRIBUTE_NOOP) -- Shift+left-drag moves the item
   w:SetAttribute("shift-type2", ATTRIBUTE_NOOP) -- Shift+right-click opens the menu (PostClick)
   if def.Setup then def.Setup(w) end
 end
@@ -305,6 +320,9 @@ local function createWidget(def)
   w.label:SetPoint("CENTER")
   w:SetScript("OnEnter", onEnter)
   w:SetScript("OnLeave", onLeave)
+  w:RegisterForDrag("LeftButton")
+  w:SetScript("OnDragStart", S.DragStart)
+  w:SetScript("OnDragStop", S.DragStop)
   if w.secure then
     -- Down and up, so the click works whatever the "cast on key down" setting is (SecureTemplates.lua).
     w:RegisterForClicks("AnyUp", "AnyDown")
@@ -391,6 +409,79 @@ function S:SetTheme(key)
   return true
 end
 
+-- Moving items ----------------------------------------------------------------------------------------------
+-- Shift+drag an item; a marker shows where it lands. The zone (left, centre, right third of the bar) and the
+-- place in it are saved per item. Secure items move out of combat only.
+
+local dragging
+
+local function cursorX()
+  return GetCursorPosition() / bar:GetEffectiveScale() - bar:GetLeft()
+end
+
+-- The zone, the new order of ids in it, and the item the dragged one lands before.
+local function dropTarget(w)
+  local x = cursorX()
+  local side = S.Arrange.Zone(x, bar:GetWidth())
+  local others = {}
+  for _, def in ipairs(S.modules) do
+    local o = def.widget
+    if o and o ~= w and o:IsShown() and S:Side(def) == side then
+      others[#others + 1] = { id = def.id, x = (o:GetCenter()) - bar:GetLeft() }
+    end
+  end
+  local ids, before = S.Arrange.Insert(others, side, w.def.id, x)
+  return side, ids, before
+end
+
+local function placeMarker(w)
+  local side, ids, before = dropTarget(w)
+  local t = S:Theme()
+  local m = bar.marker
+  m:ClearAllPoints()
+  local target = before and byId[before].widget
+  if target then
+    if side == "right" then m:SetPoint("LEFT", target, "RIGHT", t.spacing / 2 - 1, 0) else m:SetPoint("RIGHT", target, "LEFT", -t.spacing / 2 + 1, 0) end
+  else
+    local last = #ids > 1 and byId[ids[#ids - 1]].widget
+    if last then
+      if side == "right" then m:SetPoint("RIGHT", last, "LEFT", -t.spacing / 2 + 1, 0) else m:SetPoint("LEFT", last, "RIGHT", t.spacing / 2 - 1, 0) end
+    elseif side == "left" then m:SetPoint("LEFT", bar, "LEFT", 2, 0)
+    elseif side == "right" then m:SetPoint("RIGHT", bar, "RIGHT", -2, 0)
+    else m:SetPoint("CENTER", bar, "CENTER") end
+  end
+  m:SetHeight(t.height - 6)
+  m:SetColorTexture(t.text[1], t.text[2], t.text[3], 0.8)
+  m:Show()
+end
+
+function S.DragStart(w)
+  if not IsShiftKeyDown() or (w.secure and InCombatLockdown()) then return end
+  dragging = w
+  hideTooltip()
+  placeMarker(w)
+  bar:SetScript("OnUpdate", function() if dragging then placeMarker(dragging) end end)
+end
+
+function S.DragStop(w)
+  if dragging ~= w then return end
+  dragging = nil
+  bar:SetScript("OnUpdate", nil)
+  bar.marker:Hide()
+  local side, ids = dropTarget(w)
+  for i, id in ipairs(ids) do
+    local m = S:ModuleDB(id)
+    m.side, m.order = side, i * 10
+  end
+  S:Layout()
+  if S:Side(w.def) == "centre" then S:Layout() end
+end
+
+function S:ResetPositions()
+  for _, m in pairs(DB.modules) do m.side, m.order = nil, nil end
+  S:Layout()
+end
+
 -- Menu ------------------------------------------------------------------------------------------------------
 
 local menuExtras = {}
@@ -416,6 +507,8 @@ local function buildMenu(root)
   local function isOn(def) return S:IsEnabled(def) end
   local function toggle(def) S:SetEnabled(def, not S:IsEnabled(def)) end
   for _, def in ipairs(sorted) do modules:CreateCheckbox(def.name, isOn, toggle, def) end
+  modules:CreateDivider()
+  modules:CreateButton("Reset item positions", function() S:ResetPositions() end)
   for _, fn in ipairs(menuExtras) do fn(root) end
 end
 
@@ -448,6 +541,9 @@ local function start()
   bar.bg = bar:CreateTexture(nil, "BACKGROUND", nil, -8)
   bar.bg:SetAllPoints()
   bar.edge = bar:CreateTexture(nil, "BORDER")
+  bar.marker = bar:CreateTexture(nil, "OVERLAY")
+  bar.marker:SetWidth(2)
+  bar.marker:Hide()
   styleBar(S:Theme())
   for _, def in ipairs(S.modules) do createWidget(def) end
   S:Layout()

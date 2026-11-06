@@ -6,6 +6,7 @@
 ## SavedVariables: SuperbDB
 
 Format.lua
+Arrange.lua
 Themes.lua
 Core.lua
 Notify.lua
