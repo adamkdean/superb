@@ -1,7 +1,7 @@
 -- A small stub of the WoW client for mock tests: frames, points, events, timers, tooltip, menu and the game
 -- state the Superb addons read. Not a game test. Only methods seen in the Blizzard API docs are stubbed, and
 -- an unknown method (a capitalised name) is an error, so a typo in an addon fails here.
-local M = { time = 1000, frames = {}, tickers = {}, timers = {}, errors = {}, printed = {} }
+local M = { time = 1000, frames = {}, textures = {}, tickers = {}, timers = {}, errors = {}, printed = {} }
 
 M.state = {
   level = 23, xp = 4000, xpMax = 10000, maxLevel = 60, rested = 1500, resting = false, xpDisabled = false,
@@ -17,6 +17,10 @@ M.state = {
     [1] = { slots = 6, items = {} },
   },
   sellPrice = { [1] = 100, [2] = 5000, [3] = 20 },
+  fps = 59.6, latencyHome = 40, latencyWorld = 45,
+  zone = "Elwynn Forest", subzone = "Goldshire", mapPos = { 0.4213, 0.6578 },
+  durability = { [1] = { 80, 100 }, [5] = { 30, 60 }, [16] = { 100, 100 } },
+  newMail = false, mailSenders = { "Alice" },
 }
 
 local function point(args)
@@ -51,6 +55,11 @@ end
 function Region:SetHeight(h) self.height = h end
 function Region:SetWidth(w) self.width = w end
 function Region:GetHeight() return self.height end
+function Region:GetWidth() return self.width > 0 and self.width or 1000 end
+function Region:SetAlpha(a) self.alpha = a end
+function Region:SetJustifyH() end
+function Region:SetWordWrap() end
+function Region:GetStringHeight() return self.text and 12 or 0 end
 function Region:Show() self.shown = true end
 function Region:Hide() self.shown = false end
 function Region:SetShown(v) self.shown = v and true or false end
@@ -63,7 +72,7 @@ end
 function Region:RegisterUnitEvent(e, unit) self.events[e] = true self.unitEvents[e] = unit end
 function Region:UnregisterAllEvents() self.events = {} end
 function Region:UnregisterEvent(e) self.events[e] = nil end
-function Region:CreateTexture() return new("Texture", self) end
+function Region:CreateTexture() local t = new("Texture", self) M.textures[#M.textures + 1] = t return t end
 function Region:CreateFontString() return new("FontString", self) end
 function Region:SetFrameStrata(s) self.strata = s end
 function Region:EnableMouse() end
@@ -160,6 +169,26 @@ function M.install()
     RequestLoadItemDataByID = function(id) M.requested = id end,
   }
 
+  function GetFramerate() return S.fps end
+  function GetNetStats() return 1.5, 0.5, S.latencyHome, S.latencyWorld end
+  function UpdateAddOnMemoryUsage() M.memoryUpdates = (M.memoryUpdates or 0) + 1 end
+  function GetAddOnMemoryUsage(i) return i * 1024 end
+  C_AddOns = { GetNumAddOns = function() return 2 end, GetAddOnInfo = function(i) return "Addon" .. i, "Addon " .. i end }
+  function GetZoneText() return S.zone end
+  function GetRealZoneText() return S.zone end
+  function GetSubZoneText() return S.subzone end
+  function GetMinimapZoneText() return S.subzone ~= "" and S.subzone or S.zone end
+  C_Map = {
+    GetBestMapForUnit = function() return S.mapPos and 1429 or nil end,
+    GetPlayerMapPosition = function() local p = S.mapPos return p and { GetXY = function() return p[1], p[2] end } end,
+  }
+  INVSLOT_FIRST_EQUIPPED, INVSLOT_LAST_EQUIPPED = 1, 19
+  function GetInventoryItemDurability(slot) local d = S.durability[slot] if d then return d[1], d[2] end end
+  function GetInventoryItemLink(_, slot) return "[Item" .. slot .. "]" end
+  function HasNewMail() return S.newMail end
+  function GetLatestThreeSenders() return table.unpack(S.mailSenders) end
+  function ToggleWorldMap() M.mapToggled = (M.mapToggled or 0) + 1 end
+
   GameTooltip = { lines = {} }
   function GameTooltip:SetOwner(owner) self.owner = owner self.lines = {} end
   function GameTooltip:ClearAllPoints() end
@@ -236,8 +265,9 @@ function M.load(addon, files, ns)
   return ns
 end
 
-M.SUPERB_FILES = { "Format.lua", "Themes.lua", "Core.lua", "Modules/Clock.lua", "Modules/Gold.lua", "Modules/Bags.lua" }
-M.LEVELLING_FILES = { "Stats.lua", "Levelling.lua" }
+M.SUPERB_FILES = { "Format.lua", "Themes.lua", "Core.lua", "Notify.lua", "Modules/Clock.lua", "Modules/Gold.lua",
+  "Modules/Bags.lua", "Modules/Durability.lua", "Modules/Performance.lua", "Modules/Location.lua" }
+M.LEVELLING_FILES = { "Stats.lua", "Levelling.lua", "XPLine.lua" }
 
 -- Checks that each TOC lists exactly the files the test loads, so the test and the game load the same code.
 function M.tocFiles(addon)

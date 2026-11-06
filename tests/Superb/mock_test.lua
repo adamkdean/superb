@@ -184,4 +184,98 @@ SlashCmdList.SUPERB("reset")
 check.eq("reset position", SuperbDB.position, "top")
 check.eq("reset theme", SuperbDB.theme, "defaultDark")
 
+-- New items -------------------------------------------------------------------------------------------------
+check.eq("performance", widget("performance").text, "60 fps · 45 ms")
+M.time = M.time + 11 -- past the memory cache from the tooltip loop above
+local mem = M.memoryUpdates or 0
+local perf = widget("performance")
+perf.scripts.OnEnter(perf)
+M.tick(3)
+check.eq("memory read once per 10 s", (M.memoryUpdates or 0) - mem, 1)
+perf.scripts.OnLeave(perf)
+
+local loc = widget("location")
+check.eq("location text", loc.text, "Goldshire  42, 66")
+check.eq("location in the centre", loc.points.LEFT.relPoint, "CENTER")
+check.eq("location centred", loc.points.LEFT.x, -loc.width / 2)
+S.mapPos = nil
+M.tick()
+check.eq("no coordinates in instances", loc.text, "Goldshire")
+S.mapPos = { 0.5, 0.25 }
+loc.scripts.OnClick(loc, "RightButton")
+M.find(M.menu, "One decimal place").select()
+check.eq("one decimal", loc.text, "Goldshire  50.0, 25.0")
+M.find(M.menu, "Show coordinates").select()
+check.eq("coordinates off", loc.text, "Goldshire")
+loc.scripts.OnClick(loc, "LeftButton")
+check.eq("map opens", M.mapToggled, 1)
+S.lockdown = true
+loc.scripts.OnClick(loc, "LeftButton")
+check.eq("no map in combat", M.mapToggled, 1)
+S.lockdown = false
+
+local dur = widget("durability")
+S.durability[5] = { 27, 60 }
+M.fire("UPDATE_INVENTORY_DURABILITY")
+check.eq("durability lowest, orange", dur.text, "Armour |cffff991a45%|r")
+
+-- Notifications.
+local function toasts()
+  local list = {}
+  for _, f in ipairs(M.frames) do if f.strata == "DIALOG" and f.shown then list[#list + 1] = f end end
+  table.sort(list, function(a, b) return a.born > b.born end) -- newest first
+  return list
+end
+check.eq("no toasts yet", #toasts(), 0)
+S.durability[5] = { 12, 60 }
+M.fire("UPDATE_INVENTORY_DURABILITY")
+check.eq("repair toast", #toasts(), 1)
+check.eq("repair title", toasts()[1].title.text, "Repair soon")
+check.eq("durability red", dur.text, "Armour |cffff404020%|r")
+check.eq("toast under a top bar", toasts()[1].points.TOPRIGHT.rel, bar)
+M.time = M.time + 0.1
+S.durability[5] = { 0, 60 }
+M.fire("UPDATE_INVENTORY_DURABILITY")
+check.eq("broken toast", toasts()[1].title.text, "Item broken")
+check.eq("toasts stack", #toasts(), 2)
+
+M.time = M.time + 0.1
+S.newMail = true
+M.fire("UPDATE_PENDING_MAIL")
+check.eq("mail toast", toasts()[1].body.text, "From Alice")
+M.fire("UPDATE_PENDING_MAIL")
+check.eq("mail once", #toasts(), 3)
+
+for slot = 3, 6 do S.bags[1].items[slot] = { itemID = 3, stackCount = 1, quality = 1, hyperlink = "[Cloth]", isBound = false, hasNoValue = false } end
+for slot = 4, 4 do S.bags[0].items[slot] = { itemID = 3, stackCount = 1, quality = 1, hyperlink = "[Cloth]", isBound = false, hasNoValue = false } end
+M.time = M.time + 0.1
+M.fire("BAG_UPDATE_DELAYED")
+M.runTimers()
+check.eq("bags full text", widget("bags").text, "Bags 0 free")
+check.eq("at most three toasts", #toasts(), 3)
+check.eq("bags full toast newest", toasts()[1].title.text, "Bags full")
+
+M.tick(8)
+for _, t in ipairs(toasts()) do t.scripts.OnUpdate(t) end
+check.eq("toasts fade out", #toasts(), 0)
+
+-- Turn a kind off, then notifications off.
+local superbW = widget("superb")
+superbW.scripts.OnClick(superbW, "LeftButton")
+M.find(M.menu, "New mail").select()
+check.eq("mail kind off", SuperbDB.modules.notifications.mail, false)
+check.eq("mail kind refused", Superb:Notify("mail", "x", "y"), false)
+M.find(M.menu, "Show a test notification").click()
+check.eq("test toast", #toasts(), 1)
+Superb:SetEnabled(select(2, widget("notifications")), false)
+check.eq("all off", Superb:Notify("test", "x", "y"), false)
+Superb:SetEnabled(select(2, widget("notifications")), true)
+
+-- Toasts rise from a bottom bar.
+Superb:SetPosition("bottom")
+M.time = M.time + 0.1
+Superb:Notify("test", "Bottom", "x")
+check.eq("toast above a bottom bar", toasts()[1].points.BOTTOMRIGHT.rel, bar)
+Superb:SetPosition("top")
+
 check.done()

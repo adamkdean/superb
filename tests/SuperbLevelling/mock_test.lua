@@ -30,6 +30,27 @@ end
 local xpW, rateW, msW, actW = widget("levelling.xp"), widget("levelling.rate"), widget("levelling.milestone"), widget("levelling.activity")
 
 check.eq("xp text", xpW.text, "Lv 23 · 40% · 15% rested")
+
+-- XP line: 40% filled, rested shaded to 55%, on the bottom edge of a top bar.
+local fill, restedTex
+for _, t in ipairs(M.textures) do
+  if t.colour and t.colour[1] == 0.62 then fill = t end
+  if t.colour and t.colour[1] == 0.25 then restedTex = t end
+end
+check.ok("xp line textures", fill and restedTex)
+check.eq("xp fill width", fill.width, 400)
+check.eq("rested width", restedTex.width, 550)
+check.eq("xp line on the inner edge", fill.points.BOTTOMLEFT ~= nil, true)
+check.eq("xp line shown", fill.shown, true)
+Superb:SetPosition("bottom")
+check.eq("xp line moves with the bar", fill.points.TOPLEFT ~= nil, true)
+Superb:SetPosition("top")
+local lineDef
+for _, def in ipairs(Superb.modules) do if def.id == "levelling.xpline" then lineDef = def end end
+Superb:SetEnabled(lineDef, false)
+check.eq("xp line off", fill.shown, false)
+Superb:SetEnabled(lineDef, true)
+check.eq("xp line on", fill.shown, true)
 check.eq("rate measuring", rateW.text, "XP/h: measuring")
 check.ok("milestone before a rate shows xp", msW.text:find("^Lv 25: ~") ~= nil)
 
@@ -69,6 +90,11 @@ M.fire("PLAYER_XP_UPDATE", "player")
 S.xp, S.xpMax = 200, 11000
 M.fire("PLAYER_XP_UPDATE", "player")
 M.fire("PLAYER_LEVEL_UP", 24)
+local card
+for _, f in ipairs(M.frames) do if f.strata == "DIALOG" and f.shown then card = f end end
+check.eq("level-up card", card and card.title.text, "Level 24")
+check.ok("level-up card text", card and card.body.text:find("^Level 23 took 12m %(10m active%)") ~= nil)
+check.ok("level-up quest share", card and card.body.text:find("13% of the XP came from quests", 1, true) ~= nil)
 S.level = 24
 M.fire("PLAYER_XP_UPDATE", "player")
 check.eq("level 23 xp", SuperbLevellingDB.levels[23].xp, 5900 + 100)
@@ -117,6 +143,7 @@ M.tick()
 check.eq("cap xp text", xpW.text, "Lv 60 · max")
 check.eq("cap hides rate", rateW:IsShown(), false)
 check.eq("cap hides milestone", msW:IsShown(), false)
+check.eq("cap hides xp line", fill.shown, false)
 
 -- XP turned off.
 S.level = 30
