@@ -5,6 +5,9 @@ local S, F = Superb, Superb.Format
 
 local scan = { free = 0, total = 0, bags = {}, vendor = 0, junk = 0, auction = 0, best = 0, priced = 0, items = {}, missing = false }
 local dirty = true
+local scanned = false
+
+S:RegisterNotification("bagsfull", "Bags full")
 
 local function lastBag() return NUM_TOTAL_EQUIPPED_BAG_SLOTS or NUM_BAG_SLOTS or 4 end
 
@@ -57,7 +60,12 @@ local function rescan()
     end
   end
   table.sort(s.items, function(a, b) return math.max(a.vendor, a.auction) > math.max(b.vendor, b.auction) end)
+  local before = scan.free
   scan = s
+  if scanned and before > 0 and s.free == 0 and s.total > 0 then
+    S:Notify("bagsfull", "Bags full", "No free bag slots left.")
+  end
+  scanned = true
 end
 
 local function current()
