@@ -89,4 +89,9 @@ The bar appears at the top of the screen. Click **Superb** at its left end for t
 
 ## Licence
 
-[MIT](LICENSE). Copyright 2026 Adam K Dean.
+```text
+SPDX-License-Identifier: MIT
+Copyright (c) 2026 Adam K Dean
+```
+
+Free to use, change and share, as long as the copyright notice stays with it. The full text is in [LICENSE](LICENSE).
