@@ -38,6 +38,7 @@ Superb/              the addon, shipped as-is into Interface/AddOns
   Modules/Hunter/    hunter pet item
   Sounds/            notification chimes
 tests/               Lua 5.4 tests and a small stub of the game's API
+.github/workflows/   CI on every push, and the release on a version tag
 docs/                this file, the player guide and README pictures
 ```
 
@@ -51,3 +52,16 @@ for t in tests/*_test.lua; do lua "$t"; done
 ```
 
 The stub is not the game. Anything it cannot copy gets tested in game before a release.
+
+CI runs on every push and pull request: it checks the addon with the Lua 5.1 compiler (the game's Lua), runs the tests, and builds the release zip as a dry run. The zip is kept on the workflow run as an artifact.
+
+## Releases
+
+A release is a version tag on `master`:
+
+```sh
+git tag -a v0.2.0 -m v0.2.0
+git push origin v0.2.0
+```
+
+The release workflow runs CI, then the [BigWigs packager](https://github.com/BigWigsMods/packager). The packager builds the zip from [`.pkgmeta`](../.pkgmeta), writes a changelog from the commits since the last tag, and uploads the zip to GitHub, CurseForge and Wago. A tag with `alpha` or `beta` in it makes an alpha or beta file.

@@ -32,6 +32,10 @@ docs/
   DEVELOPMENT.md           module API example, layout, tests
   readme/                  README pictures
   art/                     logo and emblem masters
+.pkgmeta                   what the release zip holds (BigWigs packager)
+.github/workflows/
+  ci.yml                   every push: Lua 5.1 syntax, tests, a dry-run zip
+  release.yml              a v* tag: CI, then the zip to GitHub, CurseForge and Wago
 ```
 
 Saved variables: `SuperbDB` (account: settings, positions, gold per character) and `SuperbLevellingDB` (per character: levels, sessions).
@@ -79,6 +83,14 @@ for t in tests/*_test.lua; do lua "$t"; done
 - `wowmock.lua` raises an error when an addon changes a secure frame in combat. It cannot copy the game's error for a truth test on a secret value, so a test that feeds a secret checks `M.secretChecks`.
 - A mock test is not a game test. Anything the stub cannot copy is checked in game before a release; give exact steps (slash commands, what to look for, `/superb debug`).
 - Plant a bug in a scratch copy to prove a new test can fail.
+
+## Releases
+
+- The [BigWigs packager](https://github.com/BigWigsMods/packager) builds the zip from `.pkgmeta`: one `Superb/` folder with the addon, `LICENSE` and a changelog made from the commits since the last tag. It replaces `@project-version@` in the TOC with the tag.
+- Every push to `master` runs CI and keeps the zip as a workflow artifact. Test a release candidate from that zip, not from the repo.
+- To release, tag `master` and push the tag: `git tag -a v0.2.0 -m v0.2.0 && git push origin v0.2.0`. A tag with `alpha` or `beta` in it makes an alpha or beta file.
+- An upload runs only when its project ID is in the TOC (`## X-Curse-Project-ID`, `## X-Wago-ID`) and its token is a repo secret (`CF_API_TOKEN`, `WAGO_API_TOKEN`). The GitHub release needs no setup.
+- Never tag a build that has not been tested in game.
 
 ## Commits and docs
 
