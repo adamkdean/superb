@@ -7,7 +7,6 @@ move-folders:
 # Only the addon and the licence ship. Everything else is for the repo.
 ignore:
   - AGENTS.md
-  - CLAUDE.md
   - README.md
   - docs
   - tests
