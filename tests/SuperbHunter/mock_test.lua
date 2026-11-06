@@ -1,0 +1,153 @@
+-- Mock test for addons/SuperbHunter on top of Superb: the secure pet item, combat locks, clicks, menus and
+-- warnings. Not a game test. Run from the repo root: lua tests/SuperbHunter/mock_test.lua
+package.path = "tests/lib/?.lua;" .. package.path
+local check = require("check")
+local M = require("wowmock")
+M.install()
+local S = M.state
+
+check.eq("toc files", table.concat(M.tocFiles("SuperbHunter"), ","), "Pet.lua,Hunter.lua")
+
+S.class = "HUNTER"
+S.pet = { name = "Temporary", level = 10, family = "Tallstrider", happiness = 3, damage = 125, rate = 1,
+  loyalty = "Unruly", hp = 268, hpMax = 283, dead = false, xp = 1200, xpNeed = 4000,
+  diet = { "Cheese", "Fungus", "Fruit" }, eats = { [20] = true, [21] = true } }
+S.sellPrice[20], S.sellPrice[21] = 1, 1
+S.itemLevel = { [20] = 5, [21] = 12 }
+S.bags[1].items[1] = { itemID = 20, stackCount = 4, quality = 1, hyperlink = "[Old Cheese]", isBound = false, hasNoValue = false, iconFileID = 111 }
+S.bags[1].items[2] = { itemID = 21, stackCount = 2, quality = 1, hyperlink = "[Skycheddar]", isBound = false, hasNoValue = false, iconFileID = 222 }
+
+M.load("Superb", M.SUPERB_FILES)
+M.load("SuperbHunter", { "Pet.lua", "Hunter.lua" })
+local Superb = _G.Superb
+M.fire("ADDON_LOADED", "Superb")
+M.fire("PLAYER_LOGIN")
+
+local function find(id)
+  for _, def in ipairs(Superb.modules) do if def.id == id then return def.widget, def end end
+end
+local w, def = find("hunter.pet")
+check.ok("pet item for a hunter", w ~= nil)
+check.eq("secure template", w.template, "SecureActionButtonTemplate")
+check.eq("text", w.text, "Temporary 10 · |cff4de64dHappy|r · 268/283 · |T111:0|t6") -- icon of the food it will use
+check.eq("portrait", w.icon.portrait, "pet")
+check.eq("health line", w.line.value, 268)
+check.eq("after the Superb item", w.points.LEFT.rel, find("superb"))
+
+-- Clicks: feed with the lowest food that works. For a level 10 pet, the level 5 cheese is within 10 levels.
+check.eq("left is feed", w.attributes.type1, "macro")
+check.eq("feed macro", w.attributes.macrotext1, "/cast Feed Pet\n/use 1 1")
+check.eq("right is mend", w.attributes.type2, "spell")
+check.eq("mend spell", w.attributes.spell2, "Mend Pet")
+check.eq("shift-right is free for the menu", w.attributes["shift-type2"], "")
+M.shift = true
+w.scripts.PostClick(w, "RightButton", true)
+check.eq("no menu on the down half", M.menu, nil)
+w.scripts.PostClick(w, "RightButton", false)
+check.ok("menu on shift-right", M.find(M.menu, "Bar shows") ~= nil)
+M.shift = false
+
+-- Tooltip as the screenshot, plus XP, training, loyalty trend and all food.
+w.scripts.OnEnter(w)
+local tipText = table.concat(GameTooltip.lines, "\n")
+for _, want in ipairs({ "Temporary = Tallstrider", "Mood = Happy (125% damage)", "Loyalty = Unruly", "Loyalty is = rising",
+  "Diet = Cheese, Fungus, Fruit", "Food = [Old Cheese] x4", "in bags = [Skycheddar] x2", "Pet XP = 1,200 / 4,000 (30%)",
+  "Training points = 40 free of 120", "Left-click = Feed Pet", "Right-click = Mend Pet", "Shift+right-click = Options" }) do
+  check.ok("tooltip: " .. want, tipText:find(want, 1, true) ~= nil)
+end
+w.scripts.OnLeave(w)
+
+-- Menu settings.
+M.find(M.menu, "Health").select()
+check.eq("health hidden", w.text:find("268", 1, true), nil)
+M.find(M.menu, "Highest level").select()
+check.eq("highest food", w.attributes.macrotext1, "/cast Feed Pet\n/use 1 2")
+local leftMenu = M.find(M.menu, "Left-click")
+for _, e in ipairs(leftMenu.children) do if e.label == "Mend Pet" then e.select() end end
+check.eq("left now mends", w.attributes.type1, "spell")
+M.find(M.menu, "Loyalty trend").select()
+w.scripts.OnEnter(w)
+check.eq("trend off", table.concat(GameTooltip.lines, "\n"):find("Loyalty is", 1, true), nil)
+w.scripts.OnLeave(w)
+M.find(M.menu, "Health line").select()
+check.eq("line off", w.line.shown, false)
+
+-- Combat: health turns secret, nothing on the secure item moves or changes attributes, catch-up afterwards.
+M.find(M.menu, "Health").select()
+M.find(M.menu, "Health line").select()
+S.lockdown = true
+M.blocked = 0
+M.fire("UNIT_HEALTH", "pet")
+check.eq("secret health not in the text", w.text:find("/", 1, true), nil)
+check.eq("secret health on the line", w.line.value, "SECRET")
+S.bags[1].items[2] = nil
+M.fire("BAG_UPDATE_DELAYED")
+check.eq("no blocked calls in combat", M.blocked, 0)
+check.eq("attributes wait for combat to end", w.attributes.macrotext1, "/cast Feed Pet\n/use 1 2")
+S.pet = nil
+M.fire("UNIT_PET", "player")
+check.eq("no pet in combat: kept but blank", w:IsShown(), true)
+check.eq("blank text", w.text, "")
+check.eq("still no blocked calls", M.blocked, 0)
+S.lockdown = false
+M.fire("PLAYER_REGEN_ENABLED")
+check.eq("hidden after combat", w:IsShown(), false)
+
+-- Warnings.
+S.pet = { name = "Temporary", level = 10, family = "Tallstrider", happiness = 3, damage = 125, rate = 1,
+  loyalty = "Unruly", hp = 268, hpMax = 283, dead = false, xp = 1200, xpNeed = 4000,
+  diet = { "Cheese" }, eats = { [20] = true, [21] = true } }
+S.bags[1].items[1].stackCount = 6 -- above the warning limit of 5
+M.fire("UNIT_PET", "player")
+check.eq("shown again", w:IsShown(), true)
+local function newest()
+  local best
+  for _, f in ipairs(M.frames) do if f.strata == "DIALOG" and f.shown and (not best or f.born > best.born) then best = f end end
+  return best
+end
+M.fire("UNIT_HAPPINESS", "pet")
+S.pet.happiness = 2
+M.time = M.time + 1
+M.fire("UNIT_HAPPINESS", "pet")
+check.eq("unhappy warning", newest() and newest().title.text, "Temporary is content")
+S.pet.loyalty = "Submissive"
+M.time = M.time + 1
+M.fire("PET_UI_UPDATE")
+check.eq("loyalty warning", newest().title.text, "Loyalty up")
+S.bags[1].items[1] = { itemID = 20, stackCount = 2, quality = 1, hyperlink = "[Old Cheese]", isBound = false, hasNoValue = false, iconFileID = 111 }
+M.time = M.time + 1
+M.fire("BAG_UPDATE_DELAYED")
+check.eq("low food warning", newest().title.text, "Pet food low")
+S.pet.dead = true
+M.time = M.time + 1
+M.fire("UNIT_HEALTH", "pet")
+check.eq("death warning", newest().title.text, "Pet died")
+
+-- Not a hunter: no pet item.
+M.restart(0, {})
+S.class = "WARRIOR"
+M.load("Superb", M.SUPERB_FILES)
+M.load("SuperbHunter", { "Pet.lua", "Hunter.lua" })
+M.fire("ADDON_LOADED", "Superb")
+M.fire("PLAYER_LOGIN")
+local found = false
+for _, d in ipairs(_G.Superb.modules) do if d.id == "hunter.pet" then found = true end end
+check.eq("no pet item for other classes", found, false)
+
+-- Logging in during combat: the secure button waits for combat to end.
+M.restart(0, {})
+S.class, S.lockdown = "HUNTER", true
+M.load("Superb", M.SUPERB_FILES)
+M.load("SuperbHunter", { "Pet.lua", "Hunter.lua" })
+M.fire("ADDON_LOADED", "Superb")
+M.fire("PLAYER_LOGIN")
+local d2
+for _, d in ipairs(_G.Superb.modules) do if d.id == "hunter.pet" then d2 = d end end
+check.eq("not created in combat", d2 and d2.widget, nil)
+S.lockdown = false
+M.fire("PLAYER_REGEN_ENABLED")
+check.ok("created after combat", d2.widget ~= nil)
+
+check.eq("no module errors", #M.errors, 0)
+for _, e in ipairs(M.errors) do io.write(e, "\n") end
+check.done()

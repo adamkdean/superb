@@ -21,6 +21,7 @@ M.state = {
   zone = "Elwynn Forest", subzone = "Goldshire", mapPos = { 0.4213, 0.6578 },
   durability = { [1] = { 80, 100 }, [5] = { 30, 60 }, [16] = { 100, 100 } },
   newMail = false, mailSenders = { "Alice" },
+  pet = nil,  -- set to { name, level, family, happiness, damage, rate, loyalty, hp, hpMax, dead, xp, xpNeed, diet, eats }
 }
 
 local function point(args)
@@ -38,31 +39,45 @@ Region.__index = function(_, k)
   return v
 end
 
-local function new(kind, parent)
-  local r = setmetatable({ kind = kind, parent = parent, points = {}, scripts = {}, events = {}, unitEvents = {},
-    shown = true, width = 0, height = 0 }, Region)
+local function new(kind, parent, template)
+  local r = setmetatable({ kind = kind, parent = parent, template = template, points = {}, scripts = {}, events = {},
+    unitEvents = {}, attributes = {}, shown = true, width = 0, height = 0 }, Region)
   if kind == "Frame" or kind == "Button" then M.frames[#M.frames + 1] = r end
   return r
 end
 
-function Region:SetPoint(...) local p, v = point({ ... }) self.points[p] = v end
-function Region:ClearAllPoints() self.points = {} end
+-- The game blocks these on a secure frame in combat; the mock raises an error so tests catch it.
+local function guard(self, what)
+  if self.template == "SecureActionButtonTemplate" and M.state.lockdown then
+    M.blocked = (M.blocked or 0) + 1
+    error("mock: " .. what .. " on a secure frame in combat", 3)
+  end
+end
+function Region:SetPoint(...) guard(self, "SetPoint") local p, v = point({ ... }) self.points[p] = v end
+function Region:ClearAllPoints() guard(self, "ClearAllPoints") self.points = {} end
+function Region:SetAttribute(k, v) guard(self, "SetAttribute") self.attributes[k] = v end
+function Region:GetAttribute(k) return self.attributes[k] end
+function Region:SetStatusBarTexture() end
+function Region:SetStatusBarColor(...) self.barColour = { ... } end
+function Region:SetMinMaxValues(a, b) self.min, self.max = a, b end
+function Region:SetValue(v) self.value = v end
 function Region:SetAllPoints() self.points.ALL = true end
 function Region:GetPointByName(p)
   local v = self.points[p]
   if v then return p, v.rel, v.relPoint, v.x, v.y end
 end
 function Region:SetHeight(h) self.height = h end
-function Region:SetWidth(w) self.width = w end
+function Region:SetSize(w, h) self.width, self.height = w, h end
+function Region:SetWidth(w) guard(self, "SetWidth") self.width = w end
 function Region:GetHeight() return self.height end
 function Region:GetWidth() return self.width > 0 and self.width or 1000 end
 function Region:SetAlpha(a) self.alpha = a end
 function Region:SetJustifyH() end
 function Region:SetWordWrap() end
 function Region:GetStringHeight() return self.text and 12 or 0 end
-function Region:Show() self.shown = true end
-function Region:Hide() self.shown = false end
-function Region:SetShown(v) self.shown = v and true or false end
+function Region:Show() guard(self, "Show") self.shown = true end
+function Region:Hide() guard(self, "Hide") self.shown = false end
+function Region:SetShown(v) guard(self, "SetShown") self.shown = v and true or false end
 function Region:IsShown() return self.shown end
 function Region:IsVisible() return self.shown end
 function Region:GetTop() return 768 end
@@ -109,7 +124,12 @@ function M.install()
     local orig = _G[name]
     _G[name] = function(...) orig(...) fn(...) end
   end
-  function CreateFrame(kind, _, parent) return new(kind, parent) end
+  function CreateFrame(kind, _, parent, template)
+    if template == "SecureActionButtonTemplate" and S.lockdown then error("mock: secure frame created in combat") end
+    return new(kind, parent, template)
+  end
+  ATTRIBUTE_NOOP = ""
+  function IsShiftKeyDown() return M.shift end
   function InCombatLockdown() return S.lockdown end
   function GetTime() return M.time end
   date = os.date
@@ -138,9 +158,26 @@ function M.install()
 
   function GetMoney() return S.money end
   function GetRealmName() return S.realm end
-  function UnitName() return S.name end
-  function UnitClass() return "Warrior", S.class end
-  function UnitLevel() return S.level end
+  function UnitName(u) if u == "pet" then return S.pet and S.pet.name end return S.name end
+  function UnitClass() return "Class", S.class end
+  function UnitLevel(u) if u == "pet" then return S.pet and S.pet.level end return S.level end
+  function UnitExists(u) if u == "pet" then return S.pet ~= nil end return true end
+  function HasPetUI() return S.pet ~= nil, S.pet ~= nil end
+  -- Pet health is secret in combat, as in game.
+  function UnitHealth(u) if u == "pet" and S.pet then return S.lockdown and "SECRET" or S.pet.hp end end
+  function UnitHealthMax(u) if u == "pet" and S.pet then return S.lockdown and "SECRET" or S.pet.hpMax end end
+  function UnitIsDead(u) return u == "pet" and S.pet and S.pet.dead or false end
+  function UnitCreatureFamily() return S.pet and S.pet.family end
+  function GetPetExperience() return S.pet and S.pet.xp, S.pet and S.pet.xpNeed end
+  function SetPortraitTexture(tex, unit) tex.portrait = unit end
+  C_PetInfo = {
+    CanPetEatItem = function(id) return S.pet and S.pet.eats[id] or false end,
+    GetPetHappiness = function() return S.pet.happiness, S.pet.damage, S.pet.rate end,
+    GetPetLoyalty = function() return S.pet.loyalty end,
+    GetPetFoodTypes = function() return S.pet.diet end,
+    GetPetTrainingPoints = function() return 120, 80 end,
+  }
+  C_Spell = { GetSpellName = function(id) return id == 6991 and "Feed Pet" or nil end }
   function UnitXP() return S.xp end
   function UnitXPMax() return S.xpMax end
   function GetMaxPlayerLevel() return S.maxLevel end
@@ -168,7 +205,7 @@ function M.install()
     GetItemInfo = function(id)
       local p = S.sellPrice[id]
       if p == nil then return nil end
-      return "name", "link", 1, 1, 1, "t", "s", 20, "", 1, p
+      return "name", "link", 1, S.itemLevel and S.itemLevel[id] or 1, 1, "t", "s", 20, "", 1, p
     end,
     RequestLoadItemDataByID = function(id) M.requested = id end,
   }
