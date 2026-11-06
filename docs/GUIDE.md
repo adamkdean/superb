@@ -30,7 +30,7 @@ Everything Superb puts on the bar, what each item tells you, and how to set it u
 | Next milestone | Time to your next milestone level | Every milestone with XP and time needed | |
 | Activity | Active, idle and AFK time | The split in time and percent | |
 | XP line | A thin XP line along the bar's edge, with rested XP shaded | | |
-| Hunter pet | Portrait, name, level, mood, health and food, with a health line | Family, mood and damage, loyalty, diet, food, pet XP, training points | Left: Feed Pet. Right: Mend Pet |
+| Hunter pet | Portrait, name, level, mood, health and food | Family, mood and damage, loyalty, diet, food, pet XP, training points | Left: Feed Pet. Right: Mend Pet |
 
 Every item, and every section of each tooltip, can be turned off.
 
@@ -67,7 +67,7 @@ Small silent cards drop from the bar for new mail, full bags, repairs, level-up 
 ## Good to know
 
 - **Combat.** The game does not let addons move the interface in combat. If you change the bar's position in combat, the change waits until combat ends. The hunter pet item keeps its size and place in combat for the same reason.
-- **Pet health in combat.** The game hides it from addons as a number. The health line still shows it, and the number comes back whenever the game allows it.
+- **Pet health in combat.** The game hides it from addons, so the bar leaves the number out in combat and shows it again when the game allows.
 - **Bag value** uses auction prices from the AuctionDB addon if you have it, and vendor prices if you do not.
 - **Mend Pet** is cast by its English name, so the right-click works on English clients only for now.
 
