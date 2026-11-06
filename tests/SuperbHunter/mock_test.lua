@@ -1,4 +1,4 @@
--- Mock test for addons/SuperbHunter on top of Superb: the secure pet item, combat locks, clicks, menus and
+-- Mock test for SuperbHunter on top of Superb: the secure pet item, combat locks, clicks, menus and
 -- warnings. Not a game test. Run from the repo root: lua tests/SuperbHunter/mock_test.lua
 package.path = "tests/lib/?.lua;" .. package.path
 local check = require("check")

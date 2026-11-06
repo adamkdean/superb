@@ -1,4 +1,4 @@
--- Mock test for addons/Superb: load order, saved data, moving the UI, themes, modules, tooltips and menus.
+-- Mock test for Superb: load order, saved data, moving the UI, themes, modules, tooltips and menus.
 -- Not a game test. Run from the repo root: lua tests/Superb/mock_test.lua
 package.path = "tests/lib/?.lua;" .. package.path
 local check = require("check")

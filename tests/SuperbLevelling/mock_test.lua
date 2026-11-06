@@ -1,4 +1,4 @@
--- Mock test for addons/SuperbLevelling on top of Superb: load order, saved data, XP flow, level-ups, activity,
+-- Mock test for SuperbLevelling on top of Superb: load order, saved data, XP flow, level-ups, activity,
 -- milestones, tooltips and menus. Not a game test. Run from the repo root: lua tests/SuperbLevelling/mock_test.lua
 package.path = "tests/lib/?.lua;" .. package.path
 local check = require("check")

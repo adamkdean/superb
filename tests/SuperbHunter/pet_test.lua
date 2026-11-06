@@ -1,8 +1,8 @@
--- Pure tests for addons/SuperbHunter/Pet.lua. Run from the repo root: lua tests/SuperbHunter/pet_test.lua
+-- Pure tests for SuperbHunter/Pet.lua. Run from the repo root: lua tests/SuperbHunter/pet_test.lua
 package.path = "tests/lib/?.lua;" .. package.path
 local check = require("check")
 local ns = {}
-loadfile("addons/SuperbHunter/Pet.lua")("SuperbHunter", ns)
+loadfile("SuperbHunter/Pet.lua")("SuperbHunter", ns)
 local Pet = ns.Pet
 
 local foods = {

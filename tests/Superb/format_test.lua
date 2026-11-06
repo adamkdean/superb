@@ -1,8 +1,8 @@
--- Pure tests for addons/Superb/Format.lua and Arrange.lua. Run from the repo root: lua tests/Superb/format_test.lua
+-- Pure tests for Superb/Format.lua and Arrange.lua. Run from the repo root: lua tests/Superb/format_test.lua
 package.path = "tests/lib/?.lua;" .. package.path
 local check = require("check")
-dofile("addons/Superb/Format.lua")
-dofile("addons/Superb/Arrange.lua")
+dofile("Superb/Format.lua")
+dofile("Superb/Arrange.lua")
 local F = Superb.Format
 
 check.eq("duration nil", F.Duration(nil), "-")

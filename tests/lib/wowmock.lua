@@ -318,7 +318,7 @@ end
 function M.load(addon, files, ns)
   ns = ns or {}
   for _, f in ipairs(files) do
-    local chunk = assert(loadfile("addons/" .. addon .. "/" .. f))
+    local chunk = assert(loadfile(addon .. "/" .. f))
     chunk(addon, ns)
   end
   return ns
@@ -331,7 +331,7 @@ M.LEVELLING_FILES = { "Stats.lua", "Levelling.lua", "XPLine.lua" }
 -- Checks that each TOC lists exactly the files the test loads, so the test and the game load the same code.
 function M.tocFiles(addon)
   local list = {}
-  for line in io.lines("addons/" .. addon .. "/" .. addon .. ".toc") do
+  for line in io.lines(addon .. "/" .. addon .. ".toc") do
     if line ~= "" and not line:match("^#") then list[#list + 1] = (line:gsub("\\", "/")) end
   end
   return list
