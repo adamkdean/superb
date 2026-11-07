@@ -67,7 +67,14 @@ check.eq("menu: xp line unticked", M.find(M.menu, "Show XP line").selected, fals
 M.find(M.menu, "Show XP line").select()
 check.eq("menu: xp line on again", fill.shown, true)
 check.eq("rate measuring", rateW.text, "XP/h: measuring")
-check.ok("milestone before a rate shows xp", msW.text:find("^Lv 25: ~") ~= nil)
+check.ok("milestone before a rate shows xp", msW.text:find("^Lv 25: %d") ~= nil)
+check.eq("no ~ on the bar", msW.text:find("~", 1, true), nil)
+msW.scripts.OnEnter(msW)
+local msTip = table.concat(GameTooltip.lines, "\n")
+msW.scripts.OnLeave(msW)
+check.ok("tooltip line plain", msTip:find("Level 25 = %S+ xp, time: measuring\n") ~= nil)
+check.ok("tooltip explains estimates once", msTip:find("The XP for levels not reached yet is an estimate.", 1, true) ~= nil)
+check.eq("no ~ in the tooltip", msTip:find("~", 1, true), nil)
 
 -- 10 minutes of moving, 500 XP every minute: 3000 XP/h... at 5000 XP in 600 s active -> 30k/h.
 S.moving = true
