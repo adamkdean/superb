@@ -7,7 +7,7 @@ Rules for anyone, human or coding agent, who changes Superb. Read it before chan
 Superb is one World of Warcraft addon for **WoW: Forever**: a menu bar along the top or bottom of the screen, with modules.
 
 - Superb is **one addon**. A new feature is a module inside `Superb/Modules/`, never a second addon.
-- The default branch is `master`.
+- The default branch is `master`. Every change reaches it through a pull request (see [Pull requests](#pull-requests)).
 
 ## Layout
 
@@ -34,7 +34,7 @@ docs/
   art/                     logo and emblem masters
 .pkgmeta                   what the release zip holds (BigWigs packager)
 .github/workflows/
-  ci.yml                   every push: Lua 5.1 syntax, tests, a dry-run zip
+  ci.yml                   every pull request and push to master: Lua 5.1 syntax, tests, a dry-run zip
   release.yml              a v* tag: CI, then the zip to GitHub, CurseForge and Wago
 ```
 
@@ -84,10 +84,21 @@ for t in tests/*_test.lua; do lua "$t"; done
 - A mock test is not a game test. Anything the stub cannot copy is checked in game before a release; give exact steps (slash commands, what to look for, `/superb debug`).
 - Plant a bug in a scratch copy to prove a new test can fail.
 
+## Pull requests
+
+- Never commit or push to `master` directly. Every change, code or docs, goes through a pull request.
+- One branch per change, cut from the latest `master` and named after its main commit type: `feat/announce-level-ups`, `fix/bag-count`, `docs/guide-typos`.
+- Commits on the branch stay atomic, with conventional one-line subjects. The pull request title is a conventional subject too.
+- The description says what changed and why, and gives exact in-game test steps for any change to `Superb/` (slash commands, what to look for, `/superb debug`).
+- A pull request merges only when CI passes and any change to `Superb/` has been tested in game.
+- Merge with **Rebase and merge**, so `master` keeps the atomic commits and no merge commits. The release changelog lists every commit since the last tag, and merge commits would clutter it.
+- Delete the branch after the merge.
+
 ## Releases
 
+- A release is a version tag on `master`, made after the pull requests for that release are merged. Versions are `vMAJOR.MINOR.PATCH`. Before 1.0, a release with any `feat` commit bumps the minor version (`v0.1.0` to `v0.2.0`); a release with only fixes bumps the patch version (`v0.1.0` to `v0.1.1`).
 - The [BigWigs packager](https://github.com/BigWigsMods/packager) builds the zip from `.pkgmeta`: one `Superb/` folder with the addon, `LICENSE` and a changelog made from the commits since the last tag. It replaces `@project-version@` in the TOC with the tag.
-- Every push to `master` runs CI and keeps the zip as a workflow artifact. Test a release candidate from that zip, not from the repo.
+- Every pull request and every push to `master` runs CI and keeps the zip as a workflow artifact. Test a release candidate from the zip of the latest `master` run, not from the repo.
 - To release, tag `master` and push the tag: `git tag -a v0.2.0 -m v0.2.0 && git push origin v0.2.0`. A tag with `alpha` or `beta` in it makes an alpha or beta file.
 - An upload runs only when its project ID is in the TOC (`## X-Curse-Project-ID`, `## X-Wago-ID`) and its token is a repo secret (`CF_API_TOKEN`, `WAGO_API_TOKEN`). The GitHub release needs no setup.
 - Never tag a build that has not been tested in game.
