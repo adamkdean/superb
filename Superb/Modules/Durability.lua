@@ -1,5 +1,5 @@
--- Superb module: armour durability. The bar shows the most worn item, in orange under 50% and red under 25%.
--- Sends a notification when an item drops under 25% and when one breaks.
+-- Superb module: durability of the gear you wear, weapons included. The bar shows the most worn item, in orange
+-- under 50% and red under 25%. Sends a notification when an item drops under 25% and when one breaks.
 local S, F = Superb, Superb.Format
 
 local WARN, LOW = 50, 25
@@ -51,13 +51,13 @@ S:RegisterModule({
   Text = function()
     local lowest = scan()
     if not lowest then return nil end
-    return "Armour " .. coloured(lowest)
+    return "Durability " .. coloured(lowest)
   end,
 
   Tooltip = function(_, tip)
     local _, _, overall, items = scan()
     tip:AddLine("Durability", 1, 1, 1)
-    if overall then tip:AddDoubleLine("All armour", coloured(overall), nil, nil, nil, 1, 1, 1) end
+    if overall then tip:AddDoubleLine("All gear", coloured(overall), nil, nil, nil, 1, 1, 1) end
     if #items == 0 then
       tip:AddLine("Nothing is damaged.", 0.6, 0.6, 0.6)
     else
