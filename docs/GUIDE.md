@@ -20,7 +20,7 @@ Everything Superb puts on the bar, what each item tells you, and how to set it u
 |---|---|---|---|
 | Clock | Date and time, local or realm | Local time, realm time, session length | Left: calendar |
 | Gold | Your gold | This session's change, each of your characters on the realm, total, what your bags are worth (vendor value, junk, auction value, most valuable items) | |
-| Bag space | Free slots | Free slots per bag | Left: open bags |
+| Bag space | A bag icon and your free slots | Free slots per bag | Left: open bags |
 | Durability | Your most worn item, orange under 50%, red under 25% | Every damaged item | |
 | Performance | Frame rate and latency | Home and world latency, network, addon memory | |
 | Location | Zone and coordinates, first of the right-hand items | Zone, area, coordinates | Left: world map |
