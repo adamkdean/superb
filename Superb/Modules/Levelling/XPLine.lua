@@ -1,8 +1,10 @@
 -- Superb, levelling module: a thin XP line along the inner edge of the Superb bar, with rested XP shaded ahead of it.
+-- Like the game's XP bar, the line is blue while rested and purple when not.
 local S = Superb
 
 local HEIGHT = 2
 local XP_COLOUR = { 0.62, 0.36, 1.0, 1 }
+local RESTED_XP_COLOUR = { 0.25, 0.55, 1.0, 1 }
 local RESTED_COLOUR = { 0.25, 0.55, 1.0, 0.55 }
 local track, rested, fill
 
@@ -27,7 +29,6 @@ S:RegisterModule({
     rested = bar:CreateTexture(nil, "ARTWORK", nil, 2)
     fill = bar:CreateTexture(nil, "ARTWORK", nil, 3)
     rested:SetColorTexture(unpack(RESTED_COLOUR))
-    fill:SetColorTexture(unpack(XP_COLOUR))
   end,
 
   OnRefresh = function(_, enabled)
@@ -43,6 +44,7 @@ S:RegisterModule({
     local top = S:Position() ~= "bottom"
     local width = S:Bar():GetWidth()
     local xp, extra = UnitXP("player"), GetXPExhaustion() or 0
+    fill:SetColorTexture(unpack(extra > 0 and RESTED_XP_COLOUR or XP_COLOUR))
     track:SetColorTexture(unpack(S:Theme().highlight))
     place(track, top)
     local xpWidth = width * math.min(1, xp / mx)

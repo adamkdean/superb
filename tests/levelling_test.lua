@@ -29,13 +29,20 @@ local xpW, rateW, msW, actW = widget("levelling.xp"), widget("levelling.rate"), 
 
 check.eq("xp text", xpW.text, "Lv 23 · 40% · 15% rested")
 
--- XP line: 40% filled, rested shaded to 55%, on the bottom edge of a top bar.
+-- XP line: 40% filled, rested shaded to 55%, on the bottom edge of a top bar. Blue while rested, purple when not.
 local fill, restedTex
 for _, t in ipairs(M.textures) do
-  if t.colour and t.colour[1] == 0.62 then fill = t end
-  if t.colour and t.colour[1] == 0.25 then restedTex = t end
+  if t.colour and t.colour[4] == 1 and (t.colour[1] == 0.62 or t.colour[1] == 0.25) then fill = t end
+  if t.colour and t.colour[4] == 0.55 then restedTex = t end
 end
 check.ok("xp line textures", fill and restedTex)
+check.eq("rested: blue fill", fill.colour[1] .. "," .. fill.colour[2], "0.25,0.55")
+S.rested = 0
+Superb:Refresh("levelling.xpline")
+check.eq("not rested: purple fill", fill.colour[1] .. "," .. fill.colour[2], "0.62,0.36")
+S.rested = 1500
+Superb:Refresh("levelling.xpline")
+check.eq("rested again: blue fill", fill.colour[1], 0.25)
 check.eq("xp fill width", fill.width, 400)
 check.eq("rested width", restedTex.width, 550)
 check.eq("xp line on the inner edge", fill.points.BOTTOMLEFT ~= nil, true)
