@@ -20,6 +20,7 @@ M.fire("PLAYER_LOGIN")
 check.eq("saved levels kept", SuperbLevellingDB.levels[22].xp, 3000)
 check.eq("current level xp recorded", SuperbLevellingDB.xpMax[23], 10000)
 check.ok("current level record", SuperbLevellingDB.levels[23] ~= nil)
+check.eq("level found part-done is marked", SuperbLevellingDB.levels[23].partial, true)
 
 local function widget(id)
   for _, def in ipairs(Superb.modules) do if def.id == id then return def.widget end end
@@ -92,6 +93,7 @@ for _, f in ipairs(M.frames) do if f.strata == "DIALOG" and f.shown then card = 
 check.eq("level-up card", card and card.title.text, "Level 24")
 check.ok("level-up card text", card and card.body.text:find("^Level 23 took 12m %(10m active%)") ~= nil)
 check.ok("level-up quest share", card and card.body.text:find("13% of the XP came from quests", 1, true) ~= nil)
+check.eq("no guild or group, no announcement", #M.chat, 0)
 S.level = 24
 M.fire("PLAYER_XP_UPDATE", "player")
 check.eq("level 23 xp", SuperbLevellingDB.levels[23].xp, 5900 + 100)
@@ -203,6 +205,49 @@ M.tick(120)
 M.fire("PLAYER_LOGOUT")
 relaunch(3 * 3600)
 check.ok("kept after 3 h with an 8 h limit", actW.text:find("^Active 2m") ~= nil)
+
+-- Level-up announcements: on by default, turned off per character in the Level and XP menu.
+xpW = widget("levelling.xp")
+xpW.scripts.OnClick(xpW, "RightButton")
+check.eq("guild on by default", M.find(M.menu, "Guild").selected, true)
+check.eq("party on by default", M.find(M.menu, "Party or raid").selected, true)
+check.eq("no Say option", M.find(M.menu, "Say"), nil)
+
+local function levelUp(level, seconds)
+  S.moving = true
+  M.tick(seconds)
+  M.chat = {}
+  M.fire("PLAYER_LEVEL_UP", level)
+  S.level = level
+  local sent = {}
+  for _, c in ipairs(M.chat) do sent[#sent + 1] = c.chatType end
+  return table.concat(sent, ",")
+end
+S.guild, S.group = true, "party"
+check.eq("guild and party", levelUp(31, 10), "GUILD,PARTY")
+levelUp(32, 3725)
+check.eq("ding text", M.chat[1].msg, "(Superb) DING! {star} Level 32! Level 31 took 1h 02m (1h 02m active).")
+check.eq("same text everywhere", M.chat[2].msg, M.chat[1].msg)
+S.guild, S.group = false, "instance"
+check.eq("dungeon group, no guild", levelUp(33, 10), "INSTANCE_CHAT")
+S.group = "raid"
+check.eq("raid", levelUp(34, 10), "RAID")
+S.guild, S.chatLockdown = true, true
+check.eq("nothing in chat lockdown", levelUp(35, 10), "")
+S.chatLockdown = false
+SuperbLevellingDB.levels[35].partial = true
+levelUp(36, 10)
+check.eq("part-done level: no time", M.chat[1].msg, "(Superb) DING! {star} Level 36!")
+S.group = nil
+check.eq("alone: guild only", levelUp(37, 10), "GUILD")
+S.group = "party"
+M.find(M.menu, "Guild").select()
+check.eq("guild off saved per character", SuperbLevellingDB.announce.guild, false)
+check.eq("guild off", levelUp(38, 10), "PARTY")
+M.find(M.menu, "Party or raid").select()
+check.eq("all off", levelUp(39, 10), "")
+M.find(M.menu, "Guild").select()
+check.eq("guild on again", levelUp(40, 10), "GUILD")
 
 check.eq("no module errors", #M.errors, 0)
 for _, e in ipairs(M.errors) do io.write(e, "\n") end

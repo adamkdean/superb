@@ -4,13 +4,14 @@
 local ADDON, ns = ...
 local S, F, Stats = Superb, Superb.Format, ns.Stats
 
-local DEFAULTS = { levels = {}, xpMax = {}, idleAfter = 60, sessions = {}, resumeAfter = Stats.RESUME_GAP }
+local DEFAULTS = { levels = {}, xpMax = {}, idleAfter = 60, sessions = {}, resumeAfter = Stats.RESUME_GAP, announce = {} }
 local MILESTONE_CHOICES = { 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60 }
 local IDLE_CHOICES = { 30, 60, 120, 300 }
 local RESUME_CHOICES = { 300, 1800, 7200, 28800 }
+local ANNOUNCE_CHOICES = { { key = "guild", label = "Guild" }, { key = "party", label = "Party or raid" } }
 
 -- SavedVariablesPerCharacter load after this file runs, so DB is bound to SuperbLevellingDB on ADDON_LOADED.
-local DB = { levels = {}, xpMax = {}, idleAfter = 60, sessions = {}, resumeAfter = Stats.RESUME_GAP }
+local DB = { levels = {}, xpMax = {}, idleAfter = 60, sessions = {}, resumeAfter = Stats.RESUME_GAP, announce = {} }
 local session = Stats.NewSession(GetTime())
 local xpState
 local played          -- { total, level, levelAt, at }: the last TIME_PLAYED_MSG
@@ -90,6 +91,27 @@ local function startedText(serverTime)
   return F.Day(t.wday, t.day, t.month) .. " " .. F.Clock(t.hour, t.min, true)
 end
 
+local function groupChat()
+  if IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then return "INSTANCE_CHAT" end
+  if IsInRaid() then return "RAID" end
+  if IsInGroup() then return "PARTY" end
+end
+
+-- Announces a level-up in the chats the player turned on. No Say: outdoors the server drops an addon's SAY
+-- unless a key press or click sent it, with no error (checked in game, 2026-11-07). A channel is on unless
+-- the player turned it off (false).
+local function announce(level, r)
+  local guild, party = DB.announce.guild ~= false, DB.announce.party ~= false
+  if not (guild or party) or C_ChatInfo.InChatMessagingLockdown() then return end
+  local text = ("(Superb) DING! {star} Level %d!"):format(level)
+  if not r.partial then
+    text = text .. (" Level %d took %s (%s active)."):format(level - 1, F.Duration(r.active + r.idle + r.afk), F.Duration(r.active))
+  end
+  if guild and IsInGuild() then C_ChatInfo.SendChatMessage(text, "GUILD") end
+  local group = party and groupChat()
+  if group then C_ChatInfo.SendChatMessage(text, group) end
+end
+
 local function white(tip, left, right) tip:AddDoubleLine(left, right, nil, nil, nil, 1, 1, 1) end
 local function hint(tip, text) tip:AddLine(" ") tip:AddLine(text, 0.6, 0.6, 0.6, true) end
 
@@ -135,7 +157,8 @@ local function startTracking()
   xpState = Stats.NewXP(UnitLevel("player"), UnitXP("player"), UnitXPMax("player"))
   local mx = UnitXPMax("player")
   if mx and mx > 0 then DB.xpMax[UnitLevel("player")] = mx end
-  levelRecord(UnitLevel("player"))
+  -- A level first seen at login was started before Superb tracked it, so its time is incomplete.
+  if not DB.levels[UnitLevel("player")] then levelRecord(UnitLevel("player")).partial = true end
 
   on("PLAYER_XP_UPDATE", function(unit) if unit == nil or unit == "player" then onXP() end end)
   on("PLAYER_LEVEL_UP", function(level)
@@ -146,6 +169,7 @@ local function startTracking()
       if r.xp > 0 then text = text .. (" %d%% of the XP came from quests."):format(F.Percent(math.min(r.questXP, r.xp), r.xp)) end
       if r.deaths > 0 then text = text .. (" %d %s."):format(r.deaths, r.deaths == 1 and "death" or "deaths") end
       S:Notify("levelup", ("Level %d"):format(level), text)
+      announce(level, r)
     end
     levelRecord(level)
     signal()
@@ -263,6 +287,15 @@ S:RegisterModule({
       end
     end
     if not played then hint(tip, "Type /played once to add played time.") end
+    hint(tip, "Right-click: announce level-ups in chat.")
+  end,
+
+  Menu = function(_, root)
+    root:CreateTitle("Level and XP")
+    local chats = root:CreateButton("Announce level-ups")
+    local function isOn(key) return DB.announce[key] ~= false end
+    local function toggle(key) DB.announce[key] = DB.announce[key] == false end
+    for _, c in ipairs(ANNOUNCE_CHOICES) do chats:CreateCheckbox(c.label, isOn, toggle, c.key) end
   end,
 })
 
