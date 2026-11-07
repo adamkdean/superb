@@ -83,6 +83,10 @@ function F.Percent(part, total)
   return floor(100 * (part or 0) / total)
 end
 
+-- Goes between the parts of a bar item's text: ("%d fps" .. SEP .. "%d ms"). The bar draws it as a thin line in
+-- the theme's colour.
+F.SEP = "\t"
+
 -- Text in a colour: Colour("hi", 1, 0.82, 0) -> "|cffffd100hi|r".
 function F.Colour(text, r, g, b)
   return format("|cff%02x%02x%02x%s|r", floor(r * 255 + 0.5), floor(g * 255 + 0.5), floor(b * 255 + 0.5), text)

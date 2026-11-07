@@ -27,7 +27,7 @@ local function widget(id)
 end
 local xpW, rateW, msW, actW = widget("levelling.xp"), widget("levelling.rate"), widget("levelling.milestone"), widget("levelling.activity")
 
-check.eq("xp text", xpW.text, "Lv 23 · 40% · 15% rested")
+check.eq("xp text", M.plain(xpW.text), "Lv 23 | 40% | 15% rested")
 
 -- XP line: 40% filled, rested shaded to 55%, on the bottom edge of a top bar. Blue while rested, purple when not.
 local fill, restedTex
@@ -76,7 +76,7 @@ for _ = 1, 10 do
   S.xp = S.xp + 500
   M.fire("PLAYER_XP_UPDATE", "player")
 end
-check.eq("rate shown", rateW.text, "30k xp/h · 2m to 24")
+check.eq("rate shown", M.plain(rateW.text), "30k xp/h | 2m to 24")
 check.ok("activity text", actW.text:find("^Active 10m") ~= nil)
 check.eq("record active", SuperbLevellingDB.levels[23].active, 600)
 check.eq("record xp", SuperbLevellingDB.levels[23].xp, 5000)
@@ -151,14 +151,14 @@ M.find(M.menu, "2m").select()
 check.eq("idle window saved", SuperbLevellingDB.idleAfter, 120)
 check.eq("idle window applied", Stats.ACTIVE_WINDOW, 120)
 M.find(M.menu, "Start a new session").click()
-check.eq("session reset", actW.text, "Active 0s · Idle 0s")
+check.eq("session reset", M.plain(actW.text), "Active 0s | Idle 0s")
 check.eq("old session filed", #SuperbLevellingDB.sessions, 1)
 check.eq("filed session level", SuperbLevellingDB.sessions[1].levelFrom, 23)
 
 -- At the level cap the rate and milestone items hide.
 S.level, S.maxLevel = 60, 60
 M.tick()
-check.eq("cap xp text", xpW.text, "Lv 60 · max")
+check.eq("cap xp text", M.plain(xpW.text), "Lv 60 | max")
 check.eq("cap hides rate", rateW:IsShown(), false)
 check.eq("cap hides milestone", msW:IsShown(), false)
 check.eq("cap hides xp line", fill.shown, false)
@@ -167,7 +167,7 @@ check.eq("cap hides xp line", fill.shown, false)
 S.level = 30
 S.xpDisabled = true
 M.tick()
-check.eq("xp off", xpW.text, "Lv 30 · XP off")
+check.eq("xp off", M.plain(xpW.text), "Lv 30 | XP off")
 
 -- Reload: the session continues with its rates, and no time is counted while the client was down.
 S.level, S.xpDisabled, S.xp, S.xpMax = 30, false, 1000, 20000
@@ -207,7 +207,7 @@ actW.scripts.OnLeave(actW)
 local filed = #SuperbLevellingDB.sessions
 M.fire("PLAYER_LOGOUT")
 relaunch(3 * 3600)
-check.eq("new session after a long break", actW.text, "Active 0s · Idle 0s")
+check.eq("new session after a long break", M.plain(actW.text), "Active 0s | Idle 0s")
 check.eq("old session filed after a break", #SuperbLevellingDB.sessions, filed + 1)
 check.eq("filed session xp", SuperbLevellingDB.sessions[1].xp, 5000)
 rateW.scripts.OnEnter(rateW)

@@ -33,7 +33,7 @@ S:RegisterModule({
 
   Text = function()
     local home, world = latency()
-    return ("%d fps · %d ms"):format(math.floor(GetFramerate() + 0.5), math.max(home, world))
+    return ("%d fps" .. F.SEP .. "%d ms"):format(math.floor(GetFramerate() + 0.5), math.max(home, world))
   end,
 
   Tooltip = function(_, tip)

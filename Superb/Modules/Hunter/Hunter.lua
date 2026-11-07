@@ -180,7 +180,7 @@ def = {
       local food = chosenFood(foods)
       parts[#parts + 1] = food and food.icon and ("|T%d:0|t%d"):format(food.icon, total) or ("food %d"):format(total)
     end
-    return table.concat(parts, " · ")
+    return table.concat(parts, F.SEP)
   end,
 
   OnRefresh = function(w, enabled)

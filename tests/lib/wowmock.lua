@@ -73,7 +73,7 @@ function Region:RegisterForDrag() end
 -- No layout engine: tests set cx (centre x) on the items they drag around.
 function Region:GetCenter() return self.cx or 0, 0 end
 function Region:GetLeft() return 0 end
-function Region:GetEffectiveScale() return 1 end
+function Region:GetEffectiveScale() return M.uiScale or 1 end
 function Region:SetWidth(w) guard(self, "SetWidth") self.width = w end
 function Region:GetHeight() return self.height end
 function Region:GetWidth() return self.width > 0 and self.width or 1000 end
@@ -139,6 +139,8 @@ function M.install()
   function GetCursorPosition() return M.cursorX or 0, 0 end
   function InCombatLockdown() return S.lockdown end
   function GetTime() return M.time end
+  -- UI units per physical pixel: 768 / screen height (Blizzard_SharedXML/PixelUtil.lua).
+  PixelUtil = { GetPixelToUIUnitFactor = function() return M.pixelFactor or 0.5 end }
   date = os.date
   unpack = table.unpack  -- a global in the game's Lua 5.1
   function GetServerTime() return M.serverBase + math.floor(M.time) end
@@ -324,6 +326,9 @@ function M.restart(gap, saved)
   M.install()
   for k, v in pairs(saved) do _G[k] = v end
 end
+
+-- Bar text has a hairline texture between segments; tests read it as " | ".
+function M.plain(text) return (text:gsub("  |TInterface\\Buttons\\WHITE8X8:[^|]*|t  ", " | ")) end
 
 function M.runTimers()
   local list = M.timers
