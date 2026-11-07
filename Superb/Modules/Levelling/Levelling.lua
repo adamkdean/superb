@@ -241,12 +241,12 @@ S:RegisterModule({
 
   Text = function()
     local level = UnitLevel("player")
-    if atCap() then return ("Lv %d · max"):format(level) end
-    if IsXPUserDisabled() then return ("Lv %d · XP off"):format(level) end
+    if atCap() then return ("Lv %d" .. F.SEP .. "max"):format(level) end
+    if IsXPUserDisabled() then return ("Lv %d" .. F.SEP .. "XP off"):format(level) end
     local xp, mx = UnitXP("player"), UnitXPMax("player")
-    local s = ("Lv %d · %d%%"):format(level, F.Percent(xp, mx))
+    local s = ("Lv %d" .. F.SEP .. "%d%%"):format(level, F.Percent(xp, mx))
     local rested = GetXPExhaustion()
-    if rested and rested > 0 then s = s .. (" · %d%% rested"):format(F.Percent(rested, mx)) end
+    if rested and rested > 0 then s = s .. F.SEP .. ("%d%% rested"):format(F.Percent(rested, mx)) end
     return s
   end,
 
@@ -314,7 +314,7 @@ S:RegisterModule({
     local rate = rates(GetTime())
     if not rate then return "XP/h: measuring" end
     local ttl = Stats.TimeFor(UnitXPMax("player") - UnitXP("player"), rate)
-    return ("%s xp/h · %s to %d"):format(F.Short(rate), F.Duration(ttl), UnitLevel("player") + 1)
+    return ("%s xp/h" .. F.SEP .. "%s to %d"):format(F.Short(rate), F.Duration(ttl), UnitLevel("player") + 1)
   end,
 
   Tooltip = function(_, tip)
@@ -424,8 +424,8 @@ S:RegisterModule({
   id = "levelling.activity", name = "Active and idle time", side = "left", order = 40,
 
   Text = function()
-    local s = ("Active %s · Idle %s"):format(F.Duration(session.active), F.Duration(session.idle))
-    if session.afk >= 60 then s = s .. " · AFK " .. F.Duration(session.afk) end
+    local s = ("Active %s" .. F.SEP .. "Idle %s"):format(F.Duration(session.active), F.Duration(session.idle))
+    if session.afk >= 60 then s = s .. F.SEP .. "AFK " .. F.Duration(session.afk) end
     return s
   end,
 

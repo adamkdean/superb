@@ -211,7 +211,21 @@ check.eq("reset position", SuperbDB.position, "top")
 check.eq("reset theme", SuperbDB.theme, "defaultDark")
 
 -- New items -------------------------------------------------------------------------------------------------
-check.eq("performance", widget("performance").text, "60 fps · 45 ms")
+check.eq("performance", M.plain(widget("performance").text), "60 fps | 45 ms")
+check.eq("hairline in the theme's colour", widget("performance").text,
+  "60 fps  |TInterface\\Buttons\\WHITE8X8:10:0.500:0:0:8:8:0:8:0:8:92:92:94|t  45 ms")
+Superb:SetTheme("vanilla")
+check.ok("hairline follows the theme", widget("performance").text:find("WHITE8X8:8:0.500:0:0:8:8:0:8:0:8:102:84:20|t", 1, true) ~= nil)
+Superb:SetTheme("defaultDark")
+-- The line is one physical pixel wide at any screen size and UI scale, so every line looks the same.
+M.pixelFactor, M.uiScale = 0.4, 0.8
+M.tick()
+check.ok("hairline one pixel wide", widget("performance").text:find("WHITE8X8:10:0.500:", 1, true) ~= nil)
+M.pixelFactor = 0.39
+M.tick()
+check.ok("hairline follows the screen", widget("performance").text:find("WHITE8X8:10:0.487:", 1, true) ~= nil)
+M.pixelFactor, M.uiScale = nil, nil
+M.tick()
 M.time = M.time + 11 -- past the memory cache from the tooltip loop above
 local mem = M.memoryUpdates or 0
 local perf = widget("performance")

@@ -24,6 +24,8 @@ Superb:Notify("myaddon.done", "Hello", "Something happened.")          -- rings 
 Superb:Notify("myaddon.done", "Oh no", "Something went wrong.", "bad")  -- a type for this card only
 ```
 
+To split an item's text into parts, put `Superb.Format.SEP` between them, for example `"Lv 12" .. Superb.Format.SEP .. "40%"`. The bar draws it as a thin line in the theme's colour.
+
 A notification's type is `info` (the default), `good`, `warning` or `bad`. Each type has its own chime, so pick the one that matches what the player should feel.
 
 The full list of module fields, including `tick`, `OnRefresh` and secure items that cast spells, is at the top of the "Module API" section in [`Superb/Core.lua`](../Superb/Core.lua).

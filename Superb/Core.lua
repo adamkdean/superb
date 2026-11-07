@@ -217,6 +217,19 @@ local function report(def, err)
   geterrorhandler()(("Superb module %s: %s"):format(def.id, tostring(err)))
 end
 
+-- The thin line that replaces Format.SEP: a white texture tinted with the theme's sep colour, about the height of
+-- a capital letter. WHITE8X8 is used by other Forever addons (DBM, LibSharedMedia); the tint fields follow
+-- Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua. It is one physical pixel wide (PixelUtil, as Blizzard's
+-- pixel-perfect frames do): a width of 1 UI unit covers one or two pixels depending on where the text puts it.
+-- The game accepts a fractional width here (checked in game, 2026-11-07).
+local function separator(label)
+  local t = S:Theme()
+  local function c(v) return math.floor(v * 255 + 0.5) end
+  local width = PixelUtil.GetPixelToUIUnitFactor() / label:GetEffectiveScale()
+  return ("  |TInterface\\Buttons\\WHITE8X8:%d:%.3f:0:0:8:8:0:8:0:8:%d:%d:%d|t  "):format(
+    math.floor(t.size * 0.7 + 0.5), width, c(t.sep[1]), c(t.sep[2]), c(t.sep[3]))
+end
+
 function S:Refresh(ref)
   local def = type(ref) == "table" and ref or byId[ref]
   local w = def and def.widget
@@ -226,6 +239,7 @@ function S:Refresh(ref)
   if enabled then
     local ok, res = pcall(def.Text, w)
     if ok then text = res else report(def, res) text = "?" end
+    if type(text) == "string" then text = text:gsub(S.Format.SEP, separator(w.label)) end
   end
   if def.OnRefresh then
     local ok, err = pcall(def.OnRefresh, w, enabled)
@@ -352,7 +366,7 @@ end
 -- def = {
 --   id = "unique", name = "Menu label", side = "left" | "centre" | "right", order = number (lower is nearer
 --   the edge; in the centre, lower is further left),
---   Text = function(widget) return "bar text" end,       -- nil or "" hides the item
+--   Text = function(widget) return "bar text" end,       -- nil or "" hides the item; Format.SEP splits parts
 --   Tooltip = function(widget, GameTooltip) end,         -- optional
 --   OnClick = function(widget, button) end,              -- optional, left click
 --   Menu = function(widget, rootDescription) end,        -- optional, added to the right-click menu

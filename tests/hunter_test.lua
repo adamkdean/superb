@@ -27,7 +27,7 @@ end
 local w, def = find("hunter.pet")
 check.ok("pet item for a hunter", w ~= nil)
 check.eq("secure template", w.template, "SecureActionButtonTemplate")
-check.eq("text", w.text, "Temporary 10 · |cff4de64dHappy|r · 268/283 · |T111:0|t6") -- icon of the food it will use
+check.eq("text", M.plain(w.text), "Temporary 10 | |cff4de64dHappy|r | 268/283 | |T111:0|t6") -- icon of the food it will use
 check.eq("portrait", w.icon.portrait, "pet")
 check.eq("no health line", w.line, nil)
 check.eq("after the Superb item", w.points.LEFT.rel, find("superb"))
