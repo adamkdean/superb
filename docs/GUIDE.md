@@ -29,7 +29,7 @@ Everything Superb puts on the bar, what each item tells you, and how to set it u
 | XP per hour | Rate and time to the next level | Last 15 minutes, session, all time, recent sessions | |
 | Next milestone | Time to your next milestone level | Every milestone with XP and time needed | |
 | Activity | Active, idle and AFK time | The split in time and percent | |
-| XP line | A thin XP line along the bar's edge, with rested XP shaded | | |
+| XP line | A thin XP line along the bar's edge, blue while rested and purple when not, with rested XP shaded | | |
 | Hunter pet | Portrait, name, level, mood, health and food | Family, mood and damage, loyalty, diet, food, pet XP, training points | Left: Feed Pet. Right: Mend Pet |
 
 Every item, and every section of each tooltip, can be turned off.
