@@ -1,6 +1,7 @@
--- Superb modules: bag space and bag value. One scan of the bags serves both.
+-- Superb module: bag space, and the bag value shown in the gold tooltip. One scan of the bags serves both.
 -- Auction prices come from AuctionDB when it is loaded (read only; its methods are not a declared API,
 -- so every call is wrapped and checked here, in one place).
+local _, ns = ...
 local S, F = Superb, Superb.Format
 
 local scan = { free = 0, total = 0, bags = {}, vendor = 0, junk = 0, auction = 0, best = 0, priced = 0, items = {}, missing = false }
@@ -81,17 +82,16 @@ local function markDirty()
   C_Timer.After(0.5, function()
     pending = false
     S:Refresh("bags")
-    S:Refresh("bagvalue")
   end)
 end
 
-local function valueCfg() return S:ModuleDB("bagvalue") end
-local function useAuction() return valueCfg().source ~= "vendor" and hasAuctionDB() end
-
 S:RegisterModule({
   id = "bags", name = "Bag space", side = "right", order = 40,
-  events = { "BAG_UPDATE_DELAYED" },
-  OnEvent = function() markDirty() return false end,
+  events = { "BAG_UPDATE_DELAYED", "GET_ITEM_INFO_RECEIVED" },
+  OnEvent = function(_, event)
+    if event == "BAG_UPDATE_DELAYED" or scan.missing then markDirty() end
+    return false
+  end,
 
   Text = function()
     local s = current()
@@ -114,50 +114,27 @@ S:RegisterModule({
   end,
 })
 
-S:RegisterModule({
-  id = "bagvalue", name = "Bag value", side = "right", order = 30,
-  events = { "BAG_UPDATE_DELAYED", "GET_ITEM_INFO_RECEIVED" },
-  OnEvent = function(_, event)
-    if event == "BAG_UPDATE_DELAYED" or scan.missing then markDirty() end
-    return false
-  end,
-
-  Text = function()
-    local s = current()
-    return F.Money(useAuction() and s.best or s.vendor, S:Theme().size)
-  end,
-
-  Tooltip = function(_, tip)
-    local s = current()
-    tip:AddLine("Bag value", 1, 1, 1)
-    tip:AddDoubleLine("Vendor", F.Money(s.vendor, 12), nil, nil, nil, 1, 1, 1)
-    if s.junk > 0 then tip:AddDoubleLine("  of which junk", F.Money(s.junk, 12), 0.6, 0.6, 0.6, 0.8, 0.8, 0.8) end
-    if hasAuctionDB() then
-      tip:AddDoubleLine("Auction (AuctionDB)", F.Money(s.auction, 12), nil, nil, nil, 1, 1, 1)
-      tip:AddDoubleLine("  items with a price", tostring(s.priced), 0.6, 0.6, 0.6, 0.8, 0.8, 0.8)
-      tip:AddDoubleLine("Best of both, per item", F.Money(s.best, 12), nil, nil, nil, 1, 1, 1)
-    else
-      tip:AddLine("Load AuctionDB for auction prices.", 0.6, 0.6, 0.6)
-    end
-    if s.missing then tip:AddLine("Some item prices are still loading.", 0.6, 0.6, 0.6) end
-    if #s.items > 0 then
-      tip:AddLine(" ")
-      tip:AddLine("Most valuable", 1, 1, 1)
-      for i = 1, math.min(5, #s.items) do
-        local e = s.items[i]
-        local label = e.count > 1 and (e.link .. " x" .. e.count) or e.link
-        tip:AddDoubleLine(label, F.Money(math.max(e.vendor, e.auction), 12), nil, nil, nil, 1, 1, 1)
-      end
-    end
+-- The bag value section of the gold tooltip (Gold.lua).
+function ns.AddBagValue(tip)
+  local s = current()
+  tip:AddLine("Bag value", 1, 1, 1)
+  tip:AddDoubleLine("Vendor", F.Money(s.vendor, 12), nil, nil, nil, 1, 1, 1)
+  if s.junk > 0 then tip:AddDoubleLine("  of which junk", F.Money(s.junk, 12), 0.6, 0.6, 0.6, 0.8, 0.8, 0.8) end
+  if hasAuctionDB() then
+    tip:AddDoubleLine("Auction (AuctionDB)", F.Money(s.auction, 12), nil, nil, nil, 1, 1, 1)
+    tip:AddDoubleLine("  items with a price", tostring(s.priced), 0.6, 0.6, 0.6, 0.8, 0.8, 0.8)
+    tip:AddDoubleLine("Best of both, per item", F.Money(s.best, 12), nil, nil, nil, 1, 1, 1)
+  else
+    tip:AddLine("Load AuctionDB for auction prices.", 0.6, 0.6, 0.6)
+  end
+  if s.missing then tip:AddLine("Some item prices are still loading.", 0.6, 0.6, 0.6) end
+  if #s.items > 0 then
     tip:AddLine(" ")
-    tip:AddLine("With AuctionDB, the bar shows the better of the auction and vendor price for each item. Right-click: options.", 0.6, 0.6, 0.6, true)
-  end,
-
-  Menu = function(_, root)
-    root:CreateTitle("Bag value")
-    local function isSource(v) return (valueCfg().source or "auction") == v end
-    local function setSource(v) valueCfg().source = v S:Refresh("bagvalue") end
-    root:CreateRadio("Auction price (AuctionDB)", isSource, setSource, "auction")
-    root:CreateRadio("Vendor price", isSource, setSource, "vendor")
-  end,
-})
+    tip:AddLine("Most valuable", 1, 1, 1)
+    for i = 1, math.min(5, #s.items) do
+      local e = s.items[i]
+      local label = e.count > 1 and (e.link .. " x" .. e.count) or e.link
+      tip:AddDoubleLine(label, F.Money(math.max(e.vendor, e.auction), 12), nil, nil, nil, 1, 1, 1)
+    end
+  end
+end

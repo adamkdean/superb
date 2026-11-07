@@ -22,7 +22,7 @@ M.tick(5)
 local ids = {}
 for _, def in ipairs(Superb.modules) do ids[#ids + 1] = def.id end
 table.sort(ids)
-check.eq("modules", table.concat(ids, ","), "bags,bagvalue,clock,durability,gold,hunter.pet,levelling.activity,"
+check.eq("modules", table.concat(ids, ","), "bags,clock,durability,gold,hunter.pet,levelling.activity,"
   .. "levelling.milestone,levelling.rate,levelling.xp,levelling.xpline,location,notifications,performance,superb")
 check.ok("one saved table per character", type(SuperbLevellingDB) == "table")
 
