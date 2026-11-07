@@ -231,6 +231,33 @@ function S:Separator(label)
     math.floor(t.size * 0.7 + 0.5), width, c(t.sep[1]), c(t.sep[2]), c(t.sep[3]))
 end
 
+-- A unit's health in percent, after an item's label, in widget.hp. On Forever pet health is secret even out of
+-- combat (checked in game, 2026-11-07): Superb cannot read it, but SetFormattedText takes it and the game draws it.
+-- UnitHealthPercent with Blizzard's ScaleTo100 curve gives 0 to 100 without Lua maths
+-- (Blizzard_SharedXMLBase/CurveConstants.lua). The width of secret text is secret, so the room for it
+-- (widget.rightInset) is measured on the widest plain text, "100%". Call it from OnRefresh.
+function S:ShowHealth(w, unit, show)
+  if not w.hp then
+    w.hp = w:CreateFontString(nil, "OVERLAY")
+    w.hp:SetPoint("LEFT", w.label, "RIGHT", 0, 0)
+  end
+  w.hp:ClearText()
+  if not show then
+    w.hp:Hide()
+    w.rightInset = 0
+    return
+  end
+  local t = S:Theme()
+  w.hp:SetFont(t.font, t.size, t.flags)
+  w.hp:SetTextColor(unpack(t.text))
+  if t.shadow then w.hp:SetShadowOffset(1, -1) w.hp:SetShadowColor(0, 0, 0, 1) else w.hp:SetShadowOffset(0, 0) end
+  local sep = S:Separator(w.label)
+  w.hp:SetText(sep .. "100%")
+  w.rightInset = math.ceil(w.hp:GetStringWidth())
+  w.hp:SetFormattedText("%s%.0f%%", sep, UnitHealthPercent(unit, true, CurveConstants.ScaleTo100))
+  w.hp:Show()
+end
+
 function S:Refresh(ref)
   local def = type(ref) == "table" and ref or byId[ref]
   local w = def and def.widget
