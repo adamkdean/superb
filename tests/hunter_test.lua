@@ -30,7 +30,7 @@ check.eq("secure template", w.template, "SecureActionButtonTemplate")
 check.eq("text", M.plain(w.text), "Temporary 10 | |cff4de64dHappy|r | 268/283 | |T111:0|t6") -- icon of the food it will use
 check.eq("portrait", w.icon.portrait, "pet")
 check.eq("no health line", w.line, nil)
-check.eq("after the Superb item", w.points.LEFT.rel, find("superb"))
+check.eq("in the centre, first", w.points.LEFT.relPoint, "CENTER")
 
 -- Clicks: feed with the lowest food that works. For a level 10 pet, the level 5 cheese is within 10 levels.
 check.eq("left is feed", w.attributes.type1, "macro")

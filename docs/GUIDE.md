@@ -46,7 +46,7 @@ Every item, and every section of each tooltip, can be turned off.
 
 ## Hunter pet
 
-- Hunters only. The item sits at the left of the bar.
+- Hunters only. The item sits in the centre of the bar.
 - **Feed Pet** uses the lowest level food in your bags that is within 10 levels of your pet. You can switch it to the highest level food instead. Superb asks the game which items your pet eats, so any food works.
 - Each click can be set to Feed Pet, Mend Pet or nothing.
 - **Warnings:** pet unhappy, food running low (under 3, 5, 10 or 20), loyalty up, pet died.
