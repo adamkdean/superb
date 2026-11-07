@@ -38,7 +38,7 @@ Superb/              the addon, shipped as-is into Interface/AddOns
   Modules/Hunter/    hunter pet item
   Sounds/            notification chimes
 tests/               Lua 5.4 tests and a small stub of the game's API
-.github/workflows/   CI on every push, and the release on a version tag
+.github/workflows/   CI on every pull request and push to master, and the release on a version tag
 docs/                this file, the player guide and README pictures
 ```
 
@@ -53,11 +53,17 @@ for t in tests/*_test.lua; do lua "$t"; done
 
 The stub is not the game. Anything it cannot copy gets tested in game before a release.
 
-CI runs on every push and pull request: it checks the addon with the Lua 5.1 compiler (the game's Lua), runs the tests, and builds the release zip as a dry run. The zip is kept on the workflow run as an artifact.
+CI runs on every pull request and every push to `master`: it checks the addon with the Lua 5.1 compiler (the game's Lua), runs the tests, and builds the release zip as a dry run. The zip is kept on the workflow run as an artifact.
+
+## Pull requests
+
+Every change reaches `master` through a pull request; nothing is committed to `master` directly. Work on a branch cut from the latest `master` and named after the change, such as `feat/announce-level-ups` or `fix/bag-count`. Keep the commits atomic, with [conventional](https://www.conventionalcommits.org/) one-line subjects.
+
+A pull request merges when CI passes and any change to the addon has been tested in game. It is merged with **Rebase and merge**, so `master` has no merge commits and the release changelog lists only real changes. [`AGENTS.md`](../AGENTS.md) has the full rules.
 
 ## Releases
 
-A release is a version tag on `master`:
+A release is a version tag on `master`, made once the pull requests for it are merged. Versions are `vMAJOR.MINOR.PATCH`. Before 1.0, a release with a new feature bumps the minor version (`v0.1.0` to `v0.2.0`), and a release with only fixes bumps the patch version (`v0.1.0` to `v0.1.1`).
 
 ```sh
 git tag -a v0.2.0 -m v0.2.0
