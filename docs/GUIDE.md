@@ -24,7 +24,7 @@ Everything Superb puts on the bar, what each item tells you, and how to set it u
 | Bag space | Free slots | Free slots per bag | Left: open bags |
 | Durability | Your most worn item, orange under 50%, red under 25% | Every damaged item | |
 | Performance | Frame rate and latency | Home and world latency, network, addon memory | |
-| Location | Zone and coordinates, in the centre | Zone, area, coordinates | Left: world map |
+| Location | Zone and coordinates, first of the right-hand items | Zone, area, coordinates | Left: world map |
 | Level and XP | Level, XP and rested XP | XP, rested XP, time on this level, quest share, recent levels | |
 | XP per hour | Rate and time to the next level | Last 15 minutes, session, all time, recent sessions | |
 | Next milestone | Time to your next milestone level | Every milestone with XP and time needed | |
