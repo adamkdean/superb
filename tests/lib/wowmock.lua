@@ -6,6 +6,7 @@ local M = { time = 1000, serverBase = 1800000000, frames = {}, textures = {}, ti
 M.state = {
   level = 23, xp = 4000, xpMax = 10000, maxLevel = 60, rested = 1500, resting = false, xpDisabled = false,
   money = 123456, afk = false, moving = false, combat = false, lockdown = false,
+  guild = false, group = nil, chatLockdown = false,  -- group: nil, "party", "raid" or "instance"
   realm = "Testrealm", name = "Hero", class = "WARRIOR", session = 600,
   gameHour = 13, gameMinute = 5, topOffset = 0,
   bags = {
@@ -195,6 +196,19 @@ function M.install()
   function UnitIsAFK() return S.afk end
   function IsPlayerMoving() return S.moving end
   function UnitAffectingCombat() return S.combat end
+
+  M.chat = {}
+  LE_PARTY_CATEGORY_INSTANCE = 2
+  function IsInGuild() return S.guild end
+  function IsInGroup(category)
+    if category == LE_PARTY_CATEGORY_INSTANCE then return S.group == "instance" end
+    return S.group ~= nil
+  end
+  function IsInRaid() return S.group == "raid" end
+  C_ChatInfo = {
+    SendChatMessage = function(msg, chatType) M.chat[#M.chat + 1] = { msg = msg, chatType = chatType } end,
+    InChatMessagingLockdown = function() return S.chatLockdown end,
+  }
 
   NUM_BAG_SLOTS, NUM_TOTAL_EQUIPPED_BAG_SLOTS = 4, 5
   C_Container = {
