@@ -373,12 +373,12 @@ S:RegisterModule({
       if m > level + 1 then target = m break end
     end
     if not target then return nil end
-    local need, estimate = Stats.XPToReach(level, UnitXP("player"), target, DB.xpMax)
+    -- A hint under the tooltip says when the XP is an estimate; the bar and the lines stay plain.
+    local need = Stats.XPToReach(level, UnitXP("player"), target, DB.xpMax)
     if not need then return nil end
     local t = Stats.TimeFor(need, (rates(GetTime())))
-    local mark = estimate and "~" or ""
-    if t then return ("Lv %d in %s%s"):format(target, mark, F.Duration(t)) end
-    return ("Lv %d: %s%s xp"):format(target, mark, F.Short(need))
+    if t then return ("Lv %d in %s"):format(target, F.Duration(t)) end
+    return ("Lv %d: %s xp"):format(target, F.Short(need))
   end,
 
   Tooltip = function(_, tip)
@@ -390,13 +390,12 @@ S:RegisterModule({
       local need, estimate = Stats.XPToReach(level, UnitXP("player"), target, DB.xpMax)
       if need then
         anyEstimate = anyEstimate or estimate
-        local mark = estimate and "~" or ""
         local t = Stats.TimeFor(need, rate)
-        white(tip, ("Level %d"):format(target), ("%s%s xp, %s"):format(mark, F.Short(need), t and (mark .. F.Duration(t)) or "time: measuring"))
+        white(tip, ("Level %d"):format(target), ("%s xp, %s"):format(F.Short(need), t and F.Duration(t) or "time: measuring"))
       end
     end
     if anyEstimate then
-      hint(tip, "~ The XP for levels not reached yet is an estimate. Superb records the real values as you level.")
+      hint(tip, "The XP for levels not reached yet is an estimate. Superb records the real values as you level.")
     end
     hint(tip, "Times are active play at your current rate. Right-click: choose milestones.")
   end,
