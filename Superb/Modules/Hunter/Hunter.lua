@@ -170,17 +170,13 @@ def = {
       local m = Pet.MOODS[happiness]
       parts[#parts + 1] = F.Colour(m.name, m.r, m.g, m.b)
     end
-    if c.health then
-      local hp, hpMax = plain(UnitHealth("pet")), plain(UnitHealthMax("pet"))
-      if hp and hpMax then parts[#parts + 1] = ("%d/%d"):format(hp, hpMax) end
-    end
     if c.food then
       local foods = foodInBags()
       local total = Pet.CountFood(foods)
       local food = chosenFood(foods)
       parts[#parts + 1] = food and food.icon and ("|T%d:0|t%d"):format(food.icon, total) or ("food %d"):format(total)
     end
-    return table.concat(parts, F.SEP)
+    return table.concat(parts, F.SEP) -- health is drawn after it, by S:ShowHealth
   end,
 
   OnRefresh = function(w, enabled)
@@ -188,6 +184,7 @@ def = {
     local on = enabled and hasPet()
     if on then SetPortraitTexture(w.icon, "pet") end
     w.icon:SetShown(on and true or false)
+    S:ShowHealth(w, "pet", on and cfg().show.health)
   end,
 
   Tooltip = function(_, tip)
