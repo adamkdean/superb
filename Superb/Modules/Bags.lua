@@ -93,9 +93,12 @@ S:RegisterModule({
     return false
   end,
 
+  -- The bag atlas Blizzard's own backpack button uses (Blizzard_MainMenuBarBagButtons/Mainline/MainMenuBarBagButtons.lua),
+  -- in atlas markup (Blizzard_SharedXMLBase/TextureUtil.lua, CreateAtlasMarkup).
   Text = function()
     local s = current()
-    return ("Bags %d free"):format(s.free)
+    local size = S:Theme().size + 2
+    return ("|A:bag-main:%d:%d|a %d free"):format(size, size, s.free)
   end,
 
   Tooltip = function(_, tip)
