@@ -221,8 +221,9 @@ end
 -- a capital letter. WHITE8X8 is used by other Forever addons (DBM, LibSharedMedia); the tint fields follow
 -- Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua. It is one physical pixel wide (PixelUtil, as Blizzard's
 -- pixel-perfect frames do): a width of 1 UI unit covers one or two pixels depending on where the text puts it.
--- The game accepts a fractional width here (checked in game, 2026-11-07).
-local function separator(label)
+-- The game accepts a fractional width here (checked in game, 2026-11-07). Public for items that draw a second
+-- font string after the label.
+function S:Separator(label)
   local t = S:Theme()
   local function c(v) return math.floor(v * 255 + 0.5) end
   local width = PixelUtil.GetPixelToUIUnitFactor() / label:GetEffectiveScale()
@@ -239,7 +240,7 @@ function S:Refresh(ref)
   if enabled then
     local ok, res = pcall(def.Text, w)
     if ok then text = res else report(def, res) text = "?" end
-    if type(text) == "string" then text = text:gsub(S.Format.SEP, separator(w.label)) end
+    if type(text) == "string" then text = text:gsub(S.Format.SEP, S:Separator(w.label)) end
   end
   if def.OnRefresh then
     local ok, err = pcall(def.OnRefresh, w, enabled)
@@ -253,7 +254,7 @@ function S:Refresh(ref)
       w.text = text
       w.label:SetText(text)
     end
-    local width = math.ceil(w.label:GetStringWidth()) + 2 * S:Theme().pad + (w.leftInset or 0)
+    local width = math.ceil(w.label:GetStringWidth()) + 2 * S:Theme().pad + (w.leftInset or 0) + (w.rightInset or 0)
     if width ~= w.width then
       if locked then
         pendingLayout = true
@@ -379,6 +380,7 @@ end
 --                                                        -- Shift+right-click opens its menu. Call Superb:Setup(id)
 --                                                        -- when the attributes must change.
 --   widget.leftInset = pixels                            -- optional, room for an icon left of the text
+--   widget.rightInset = pixels                           -- optional, room for something right of the text
 --   OnRefresh = function(widget, enabled) end,           -- optional, after each refresh, for items that draw
 --                                                        -- on the bar instead of showing text
 --   defaultEnabled = false,                              -- optional

@@ -38,6 +38,7 @@ Superb/              the addon, shipped as-is into Interface/AddOns
   Modules/           clock, gold, bags, durability, performance, location
   Modules/Levelling/ levelling items
   Modules/Hunter/    hunter pet item
+  Modules/Warlock/   warlock demon item
   Sounds/            notification chimes
 tests/               Lua 5.4 tests and a small stub of the game's API
 .github/workflows/   CI on every pull request and push to master, and the release on a version tag

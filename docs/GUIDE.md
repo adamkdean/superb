@@ -30,6 +30,7 @@ Everything Superb puts on the bar, what each item tells you, and how to set it u
 | Activity | Active, idle and AFK time | The split in time and percent | |
 | XP line | A thin XP line along the bar's edge, blue while rested and purple when not, with rested XP shaded | | |
 | Hunter pet | Portrait, name, level, mood, health and food | Family, mood and damage, loyalty, diet, food, pet XP, training points | Left: Feed Pet. Right: Mend Pet |
+| Warlock demon | Portrait, name, level and health in percent | Demon type, maximum health, mana | Left: Health Funnel |
 
 Every item, and every section of each tooltip, can be turned off.
 
@@ -51,9 +52,16 @@ Every item, and every section of each tooltip, can be turned off.
 - Each click can be set to Feed Pet, Mend Pet or nothing.
 - **Warnings:** pet unhappy, food running low (under 3, 5, 10 or 20), loyalty up, pet died.
 
+## Warlock demon
+
+- Warlocks only. The item sits in the centre of the bar while a demon is out.
+- The game keeps a demon's current health hidden from addons, even out of combat. Superb hands it to the game to draw on the bar, so the bar shows it as a percent, but the tooltip can only show the maximum.
+- Each click can be set to Health Funnel or nothing. Health Funnel is on the left click at first.
+- **Warning:** demon died.
+
 ## Notifications
 
-Small cards drop from the bar for new mail, full bags, repairs, level-up summaries and the four pet warnings. Turn each kind on or off under **Notifications** in the menu. **Show a test notification** shows you one in the current theme.
+Small cards drop from the bar for new mail, full bags, repairs, level-up summaries, the four pet warnings and the demon warning. Turn each kind on or off under **Notifications** in the menu. **Show a test notification** shows you one in the current theme.
 
 Each card has a type, and each type has its own short, soft chime:
 
@@ -62,7 +70,7 @@ Each card has a type, and each type has its own short, soft chime:
 | Info | One soft pop | New mail, test cards |
 | Good | Two notes going up | Level-up summary, pet loyalty up |
 | Warning | The same note twice | Bags full, repair soon, pet unhappy, pet food low |
-| Bad | Two low notes going down | Item broken, pet died |
+| Bad | Two low notes going down | Item broken, pet died, demon died |
 
 When several cards arrive together, the chime plays once, unless a later card is more serious. Chimes play on the game's master volume. Untick **Play sounds** under **Notifications** to turn them off.
 
