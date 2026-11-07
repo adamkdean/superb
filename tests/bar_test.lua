@@ -236,8 +236,7 @@ perf.scripts.OnLeave(perf)
 
 local loc = widget("location")
 check.eq("location text", loc.text, "Goldshire  42, 66")
-check.eq("location in the centre", loc.points.LEFT.relPoint, "CENTER")
-check.eq("location centred", loc.points.LEFT.x, -loc.width / 2)
+check.eq("location on the right, left of performance", loc.points.RIGHT.rel, widget("performance"))
 S.mapPos = nil
 M.tick()
 check.eq("no coordinates in instances", loc.text, "Goldshire")
@@ -375,7 +374,7 @@ Superb:SetPosition("top")
 -- Shift+drag to move items between the three zones (bar width 1000 in the mock).
 local function at(id, x) widget(id).cx = x end
 at("superb", 30) at("broken", 60) at("late", 90) at("clock", 960) at("gold", 880) at("bagvalue", 800) at("bags", 720)
-at("durability", 650) at("performance", 600) at("location", 500)
+at("durability", 650) at("performance", 600) at("location", 540)
 local goldW = widget("gold")
 M.shift = false
 goldW.scripts.OnDragStart(goldW)
@@ -403,13 +402,13 @@ check.eq("gold back on the right", SuperbDB.modules.gold.side, "right")
 check.eq("gold next to the clock", goldW.points.RIGHT.rel, widget("clock"))
 check.eq("bag value after gold", widget("bagvalue").points.RIGHT.rel, goldW)
 
--- Into the centre, left of the location.
+-- Into the empty centre: alone, centred.
 M.cursorX = 420
 goldW.scripts.OnDragStart(goldW)
 goldW.scripts.OnDragStop(goldW)
 check.eq("gold in the centre", SuperbDB.modules.gold.side, "centre")
-check.eq("location after gold", widget("location").points.LEFT.rel, goldW)
 check.eq("centre group starts at the centre", goldW.points.LEFT.relPoint, "CENTER")
+check.eq("gold centred alone", goldW.points.LEFT.x, -goldW.width / 2)
 
 -- Shift+left-click does not run the item's click.
 local mapBefore = M.mapToggled

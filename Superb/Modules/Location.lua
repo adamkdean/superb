@@ -19,7 +19,8 @@ local function coordText(x, y)
 end
 
 S:RegisterModule({
-  id = "location", name = "Location", side = "centre", order = 10, tick = true,
+  -- The leftmost item on the right; the centre is kept for class items such as the pet.
+  id = "location", name = "Location", side = "right", order = 60, tick = true,
   events = { "ZONE_CHANGED", "ZONE_CHANGED_INDOORS", "ZONE_CHANGED_NEW_AREA" },
 
   Text = function()
