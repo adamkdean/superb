@@ -8,6 +8,7 @@ local S = M.state
 
 
 S.class = "HUNTER"
+S.petHealthSecret = true -- as on Forever, even out of combat
 S.pet = { name = "Temporary", level = 10, family = "Tallstrider", happiness = 3, damage = 125, rate = 1,
   loyalty = "Unruly", hp = 268, hpMax = 283, dead = false, xp = 1200, xpNeed = 4000,
   diet = { "Cheese", "Fungus", "Fruit" }, eats = { [20] = true, [21] = true } }
@@ -27,7 +28,9 @@ end
 local w, def = find("hunter.pet")
 check.ok("pet item for a hunter", w ~= nil)
 check.eq("secure template", w.template, "SecureActionButtonTemplate")
-check.eq("text", M.plain(w.text), "Temporary 10 | |cff4de64dHappy|r | 268/283 | |T111:0|t6") -- icon of the food it will use
+check.eq("text", M.plain(w.text), "Temporary 10 | |cff4de64dHappy|r | |T111:0|t6") -- icon of the food it will use
+check.eq("health drawn by the game, as a percent", M.plain(w.hp.text), " | SECRET%")
+check.eq("room for full health", w.rightInset, #(Superb:Separator(w.label) .. "100%") * 7)
 check.eq("portrait", w.icon.portrait, "pet")
 check.eq("no health line", w.line, nil)
 check.eq("in the centre, first", w.points.LEFT.relPoint, "CENTER")
@@ -58,7 +61,8 @@ w.scripts.OnLeave(w)
 
 -- Menu settings.
 M.find(M.menu, "Health").select()
-check.eq("health hidden", w.text:find("268", 1, true), nil)
+check.eq("health hidden", w.hp.shown, false)
+check.eq("no room kept for it", w.rightInset, 0)
 M.find(M.menu, "Highest level").select()
 check.eq("highest food", w.attributes.macrotext1, "/cast Feed Pet\n/use 1 2")
 local leftMenu = M.find(M.menu, "Left-click")
@@ -75,7 +79,8 @@ M.find(M.menu, "Health").select()
 S.lockdown = true
 M.blocked = 0
 M.fire("UNIT_HEALTH", "pet")
-check.eq("secret health not in the text", w.text:find("/", 1, true), nil)
+check.eq("secret health not in the label", w.text:find("SECRET", 1, true), nil)
+check.eq("health still drawn in combat", M.plain(w.hp.text), " | SECRET%")
 S.bags[1].items[2] = nil
 M.fire("BAG_UPDATE_DELAYED")
 check.eq("no blocked calls in combat", M.blocked, 0)
