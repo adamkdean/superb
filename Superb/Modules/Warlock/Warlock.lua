@@ -52,28 +52,6 @@ local function pair(cur, max)
   return ("%s / %s (%d%%)"):format(F.Thousands(cur), F.Thousands(max), F.Percent(cur, max))
 end
 
--- The demon's health in percent, after the label. On Forever it is secret even out of combat (checked in game,
--- 2026-11-07): Superb cannot read it, but SetFormattedText takes it and the game draws it. UnitHealthPercent with
--- Blizzard's ScaleTo100 curve gives 0 to 100 without Lua maths (Blizzard_SharedXMLBase/CurveConstants.lua). The
--- width of secret text is secret, so the room for it is measured on the widest plain text, "100%".
-local function showHealth(w, on)
-  w.hp:ClearText()
-  if not (on and cfg().show.health) then
-    w.hp:Hide()
-    w.rightInset = 0
-    return
-  end
-  local t = S:Theme()
-  w.hp:SetFont(t.font, t.size, t.flags)
-  w.hp:SetTextColor(unpack(t.text))
-  if t.shadow then w.hp:SetShadowOffset(1, -1) w.hp:SetShadowColor(0, 0, 0, 1) else w.hp:SetShadowOffset(0, 0) end
-  local sep = S:Separator(w.label)
-  w.hp:SetText(sep .. "100%")
-  w.rightInset = math.ceil(w.hp:GetStringWidth())
-  w.hp:SetFormattedText("%s%.0f%%", sep, UnitHealthPercent("pet", true, CurveConstants.ScaleTo100))
-  w.hp:Show()
-end
-
 -- Bar item ----------------------------------------------------------------------------------------------------
 
 def = {
@@ -87,8 +65,6 @@ def = {
     w.icon = w:CreateTexture(nil, "ARTWORK")
     w.icon:SetSize(ICON, ICON)
     w.icon:SetPoint("LEFT", S:Theme().pad, 0)
-    w.hp = w:CreateFontString(nil, "OVERLAY")
-    w.hp:SetPoint("LEFT", w.label, "RIGHT", 0, 0)
     for _, e in ipairs({ "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_LEVEL", "UNIT_POWER_UPDATE" }) do
       pcall(w.RegisterUnitEvent, w, e, "pet")
     end
@@ -119,7 +95,7 @@ def = {
     local name, level = plain(UnitName("pet")), plain(UnitLevel("pet"))
     if c.name and name then parts[#parts + 1] = c.level and level and ("%s %d"):format(name, level) or name
     elseif c.level and level then parts[#parts + 1] = "Lv " .. level end
-    return table.concat(parts, F.SEP) -- health is drawn after it, by showHealth
+    return table.concat(parts, F.SEP) -- health is drawn after it, by S:ShowHealth
   end,
 
   OnRefresh = function(w, enabled)
@@ -127,7 +103,7 @@ def = {
     local on = enabled and hasDemon()
     if on then SetPortraitTexture(w.icon, "pet") end
     w.icon:SetShown(on and true or false)
-    showHealth(w, on)
+    S:ShowHealth(w, "pet", on and cfg().show.health)
   end,
 
   Tooltip = function(_, tip)
