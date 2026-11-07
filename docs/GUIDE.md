@@ -42,6 +42,7 @@ Every item, and every section of each tooltip, can be turned off.
 - **Milestones** default to levels 10, 20, 25, 30, 40, 50 and 60, and you can change them. For levels you have not reached yet, the XP is an estimate marked `~` until Superb has seen them.
 - Each character keeps a history of every level: time, active time, XP from quests and deaths.
 - **Announce level-ups:** right-click **Level and XP** to tell your guild or your group when you level up, for example `(Superb) DING! {star} Level 12! Level 11 took 1h 23m (48m active).` Chat shows `{star}` as the star icon. Each character chooses its own channels, and both are on at first. Guild and group messages go only when you are in one. If Superb started tracking partway through the level, the message leaves out the time.
+- **Show XP line** in the same right-click menu turns the XP line on and off. It is the same switch as **XP line** under **Modules**.
 - Type `/played` once in a session to add played time to the tooltip. Superb never asks the game for it, so your chat stays clean.
 
 ## Hunter pet

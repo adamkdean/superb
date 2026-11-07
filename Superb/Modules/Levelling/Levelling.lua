@@ -296,6 +296,13 @@ S:RegisterModule({
     local function isOn(key) return DB.announce[key] ~= false end
     local function toggle(key) DB.announce[key] = DB.announce[key] == false end
     for _, c in ipairs(ANNOUNCE_CHOICES) do chats:CreateCheckbox(c.label, isOn, toggle, c.key) end
+    -- The same switch as XP line in the Modules menu (XPLine.lua registers it after this file).
+    for _, def in ipairs(S.modules) do
+      if def.id == "levelling.xpline" then
+        root:CreateCheckbox("Show XP line", function() return S:IsEnabled(def) end,
+          function() S:SetEnabled(def, not S:IsEnabled(def)) end)
+      end
+    end
   end,
 })
 
