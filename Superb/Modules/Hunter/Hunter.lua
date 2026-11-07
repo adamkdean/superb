@@ -120,7 +120,7 @@ end
 -- Bar item ----------------------------------------------------------------------------------------------------
 
 def = {
-  id = ID, name = "Hunter pet", side = "left", order = 5, secure = true,
+  id = ID, name = "Hunter pet", side = "centre", order = 5, secure = true,  -- the centre is for class items
   events = { "UNIT_PET", "UNIT_HAPPINESS", "PET_UI_UPDATE", "UNIT_PET_EXPERIENCE", "BAG_UPDATE_DELAYED" },
 
   OnLoad = function(w)
