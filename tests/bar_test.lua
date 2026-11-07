@@ -99,8 +99,20 @@ check.eq("superb item", widget("superb").text, "Superb")
 check.eq("clock realm", widget("clock").text, "Thu 6 Nov  13:05")
 check.eq("gold", widget("gold").text, "COIN123456")
 check.eq("bags", widget("bags").text, "Bags 7 free")
+-- Bag value lives in the gold tooltip, not on the bar.
 -- Vendor 2x100 + 5000 + 5x20 = 5300. Best: junk 200, sword 5000 (bound), cloth max(100, 1500) = 6700.
-check.eq("bag value best", widget("bagvalue").text, "COIN6700")
+check.eq("no bag value item", widget("bagvalue"), nil)
+local function goldTip()
+  local g = widget("gold")
+  g.scripts.OnEnter(g)
+  local text = table.concat(GameTooltip.lines, "\n")
+  g.scripts.OnLeave(g)
+  return text
+end
+check.ok("gold tooltip: bag value", goldTip():find("Bag value", 1, true) ~= nil)
+check.ok("gold tooltip: vendor", goldTip():find("Vendor = COIN5300", 1, true) ~= nil)
+check.ok("gold tooltip: best", goldTip():find("Best of both, per item = COIN6700", 1, true) ~= nil)
+check.ok("gold tooltip: most valuable", goldTip():find("Most valuable", 1, true) ~= nil)
 check.ok("gold saved per character", SuperbDB.chars.Testrealm.Hero.money == 123456)
 
 -- Layout: right side runs from the edge inwards by order.
@@ -112,7 +124,7 @@ check.eq("superb at left edge", widget("superb").points.LEFT.rel, bar)
 -- Disable a module: it hides and the next one takes its place.
 Superb:SetEnabled(select(2, widget("gold")), false)
 check.eq("gold hidden", gold:IsShown(), false)
-check.eq("bag value now next to clock", widget("bagvalue").points.RIGHT.rel, clock)
+check.eq("bag space now next to clock", widget("bags").points.RIGHT.rel, clock)
 check.eq("disabled saved", SuperbDB.modules.gold.enabled, false)
 Superb:SetEnabled(select(2, widget("gold")), true)
 check.eq("gold back", gold:IsShown(), true)
@@ -133,7 +145,7 @@ check.eq("item data requested", M.requested, 9)
 S.sellPrice[9] = 1000
 M.fire("GET_ITEM_INFO_RECEIVED", 9)
 M.runTimers()
-check.eq("value after item info", widget("bagvalue").text, "COIN7800")
+check.ok("value after item info", goldTip():find("Best of both, per item = COIN7800", 1, true) ~= nil)
 
 -- Money event.
 S.money = 200000
@@ -180,12 +192,8 @@ check.eq("menu sets theme", SuperbDB.theme, "tooltip")
 local superb = widget("superb")
 superb.scripts.OnClick(superb, "LeftButton")
 check.ok("left click on Superb opens menu", M.find(M.menu, "Modules") ~= nil)
-check.ok("modules listed", M.find(M.menu, "Bag value") ~= nil)
-
-local bv = widget("bagvalue")
-bv.scripts.OnClick(bv, "RightButton")
-M.find(M.menu, "Vendor price").select()
-check.eq("vendor value", bv.text, "COIN" .. (5300 + 100 + 1000))
+check.ok("modules listed", M.find(M.menu, "Bag space") ~= nil)
+check.eq("bag value not a module", M.find(M.menu, "Bag value"), nil)
 
 -- A module registered after login appears at once; a module error is reported once, not thrown.
 Superb:RegisterModule({ id = "late", side = "left", order = 99, Text = function() return "late" end })
@@ -373,7 +381,7 @@ Superb:SetPosition("top")
 
 -- Shift+drag to move items between the three zones (bar width 1000 in the mock).
 local function at(id, x) widget(id).cx = x end
-at("superb", 30) at("broken", 60) at("late", 90) at("clock", 960) at("gold", 880) at("bagvalue", 800) at("bags", 720)
+at("superb", 30) at("broken", 60) at("late", 90) at("clock", 960) at("gold", 880) at("bags", 800)
 at("durability", 650) at("performance", 600) at("location", 540)
 local goldW = widget("gold")
 M.shift = false
@@ -390,17 +398,17 @@ check.eq("gold saved in the left zone", SuperbDB.modules.gold.side, "left")
 check.eq("gold last on the left", SuperbDB.modules.gold.order, 40)
 check.eq("superb order kept first", SuperbDB.modules.superb.order, 10)
 check.eq("gold laid out after the last left item", goldW.points.LEFT.rel, widget("late"))
-check.eq("bag value now next to the clock", widget("bagvalue").points.RIGHT.rel, widget("clock"))
+check.eq("bag space now next to the clock", widget("bags").points.RIGHT.rel, widget("clock"))
 
--- Into the right zone, between the clock and bag value.
+-- Into the right zone, between the clock and bag space.
 goldW.cx = 100
 M.cursorX = 920
 goldW.scripts.OnDragStart(goldW)
-check.eq("marker left of the clock", bar.marker.points.LEFT.rel, widget("bagvalue"))
+check.eq("marker left of the clock", bar.marker.points.LEFT.rel, widget("bags"))
 goldW.scripts.OnDragStop(goldW)
 check.eq("gold back on the right", SuperbDB.modules.gold.side, "right")
 check.eq("gold next to the clock", goldW.points.RIGHT.rel, widget("clock"))
-check.eq("bag value after gold", widget("bagvalue").points.RIGHT.rel, goldW)
+check.eq("bag space after gold", widget("bags").points.RIGHT.rel, goldW)
 
 -- Into the empty centre: alone, centred.
 M.cursorX = 420

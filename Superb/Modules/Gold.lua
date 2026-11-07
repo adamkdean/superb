@@ -1,4 +1,6 @@
--- Superb module: the character's gold, with the session change and the gold of every character on the realm.
+-- Superb module: the character's gold, with the session change, the gold of every character on the realm and what
+-- the bags are worth (Bags.lua).
+local _, ns = ...
 local S, F = Superb, Superb.Format
 
 local sessionStart
@@ -51,5 +53,9 @@ S:RegisterModule({
       tip:AddDoubleLine(name, F.Money(c.money, 12), nil, nil, nil, 1, 1, 1)
     end
     if #list > 1 then tip:AddDoubleLine("Total", F.Money(total, 12), 1, 1, 1, 1, 1, 1) end
+    if ns.AddBagValue then
+      tip:AddLine(" ")
+      ns.AddBagValue(tip)
+    end
   end,
 })

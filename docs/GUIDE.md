@@ -19,8 +19,7 @@ Everything Superb puts on the bar, what each item tells you, and how to set it u
 | Item | On the bar | In the tooltip | Click |
 |---|---|---|---|
 | Clock | Date and time, local or realm | Local time, realm time, session length | Left: calendar |
-| Gold | Your gold | This session's change, each of your characters on the realm, total | |
-| Bag value | What your bags are worth | Vendor value, junk, auction value, most valuable items | |
+| Gold | Your gold | This session's change, each of your characters on the realm, total, what your bags are worth (vendor value, junk, auction value, most valuable items) | |
 | Bag space | Free slots | Free slots per bag | Left: open bags |
 | Durability | Your most worn item, orange under 50%, red under 25% | Every damaged item | |
 | Performance | Frame rate and latency | Home and world latency, network, addon memory | |
@@ -84,7 +83,7 @@ When several cards arrive together, the chime plays once, unless a later card is
 
 - **Combat.** The game does not let addons move the interface in combat. If you change the bar's position in combat, the change waits until combat ends. The hunter pet item keeps its size and place in combat for the same reason.
 - **Pet health in combat.** The game hides it from addons, so the bar leaves the number out in combat and shows it again when the game allows.
-- **Bag value** uses auction prices from the AuctionDB addon if you have it, and vendor prices if you do not.
+- **Bag value**, in the gold tooltip, shows auction prices from the AuctionDB addon if you have it, as well as vendor prices.
 - **Mend Pet** is cast by its English name, so the right-click works on English clients only for now.
 
 ## Saved data
