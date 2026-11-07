@@ -114,7 +114,21 @@ function Region:SetTextColor() end
 function Region:SetShadowOffset() end
 function Region:SetShadowColor() end
 function Region:SetText(t) self.text = t end
-function Region:GetStringWidth() return #(self.text or "") * 7 end
+-- A secret argument draws, but marks the text secret until ClearText, as in game: its width is then secret too.
+function Region:SetFormattedText(fmt, ...)
+  local args = { ... }
+  for _, v in ipairs(args) do if v == "SECRET" then self.secretText = true end end
+  if self.secretText then
+    for i, v in ipairs(args) do args[i] = tostring(v) end
+    fmt = fmt:gsub("%%[%d%.]*[df]", "%%s")
+  end
+  self.text = fmt:format(table.unpack(args))
+end
+function Region:ClearText() self.text, self.secretText = "", nil end
+function Region:GetStringWidth()
+  if self.secretText then error("mock: the width of secret text is secret", 2) end
+  return #(self.text or "") * 7
+end
 
 -- Globals ---------------------------------------------------------------------------------------------------
 
@@ -173,11 +187,21 @@ function M.install()
   function UnitClass() return "Class", S.class end
   function UnitLevel(u) if u == "pet" then return S.pet and S.pet.level end return S.level end
   function UnitExists(u) if u == "pet" then return S.pet ~= nil end return true end
-  function HasPetUI() return S.pet ~= nil, S.pet ~= nil end
-  -- Pet health is secret in combat, as in game.
-  function UnitHealth(u) if u == "pet" and S.pet then return S.lockdown and "SECRET" or S.pet.hp end end
+  function HasPetUI() return S.pet ~= nil, S.pet ~= nil and S.class == "HUNTER" end
+  -- Pet health is secret in combat, and on Forever always (petHealthSecret; checked in game, 2026-11-07).
+  function UnitHealth(u) if u == "pet" and S.pet then return (S.lockdown or S.petHealthSecret) and "SECRET" or S.pet.hp end end
   function UnitHealthMax(u) if u == "pet" and S.pet then return S.lockdown and "SECRET" or S.pet.hpMax end end
+  -- 0 to 1, or 0 to 100 with CurveConstants.ScaleTo100 (Blizzard_SharedXMLBase/CurveConstants.lua); secret with health.
+  CurveConstants = { ScaleTo100 = {} }
+  function UnitHealthPercent(u, _, curve)
+    if u ~= "pet" or not S.pet then return 0 end
+    if S.lockdown or S.petHealthSecret then return "SECRET" end
+    local p = S.pet.hp / S.pet.hpMax
+    return curve == CurveConstants.ScaleTo100 and p * 100 or p
+  end
   function UnitIsDead(u) return u == "pet" and S.pet and S.pet.dead or false end
+  function UnitPower(u) if u == "pet" and S.pet then return S.pet.mana end end
+  function UnitPowerMax(u) if u == "pet" and S.pet then return S.pet.manaMax end end
   function UnitCreatureFamily() return S.pet and S.pet.family end
   function GetPetExperience() return S.pet and S.pet.xp, S.pet and S.pet.xpNeed end
   function SetPortraitTexture(tex, unit) tex.portrait = unit end
@@ -350,8 +374,9 @@ M.CORE_FILES = { "Format.lua", "Arrange.lua", "Themes.lua", "Core.lua", "Notify.
   "Modules/Bags.lua", "Modules/Durability.lua", "Modules/Performance.lua", "Modules/Location.lua" }
 M.LEVELLING_FILES = { "Modules/Levelling/Stats.lua", "Modules/Levelling/Levelling.lua", "Modules/Levelling/XPLine.lua" }
 M.HUNTER_FILES = { "Modules/Hunter/Pet.lua", "Modules/Hunter/Hunter.lua" }
+M.WARLOCK_FILES = { "Modules/Warlock/Warlock.lua" }
 M.ALL_FILES = {}
-for _, list in ipairs({ M.CORE_FILES, M.LEVELLING_FILES, M.HUNTER_FILES }) do
+for _, list in ipairs({ M.CORE_FILES, M.LEVELLING_FILES, M.HUNTER_FILES, M.WARLOCK_FILES }) do
   for _, f in ipairs(list) do M.ALL_FILES[#M.ALL_FILES + 1] = f end
 end
 
