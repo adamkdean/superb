@@ -257,7 +257,10 @@ S.lockdown = false
 local dur = widget("durability")
 S.durability[5] = { 27, 60 }
 M.fire("UPDATE_INVENTORY_DURABILITY")
-check.eq("durability lowest, orange", dur.text, "Armour |cffff991a45%|r")
+check.eq("durability lowest, orange", dur.text, "Durability |cffff991a45%|r")
+dur.scripts.OnEnter(dur)
+check.ok("tooltip overall line", table.concat(GameTooltip.lines, "\n"):find("All gear = ", 1, true) ~= nil)
+dur.scripts.OnLeave(dur)
 
 -- Notifications.
 local function toasts()
@@ -271,7 +274,7 @@ S.durability[5] = { 12, 60 }
 M.fire("UPDATE_INVENTORY_DURABILITY")
 check.eq("repair toast", #toasts(), 1)
 check.eq("repair title", toasts()[1].title.text, "Repair soon")
-check.eq("durability red", dur.text, "Armour |cffff404020%|r")
+check.eq("durability red", dur.text, "Durability |cffff404020%|r")
 check.eq("toast under a top bar", toasts()[1].points.TOPRIGHT.rel, bar)
 local SOUNDS = "Interface\\AddOns\\Superb\\Sounds\\"
 check.eq("sound on by default: repair is a warning", M.sounds[#M.sounds].path, SOUNDS .. "warning.ogg")
