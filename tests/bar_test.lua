@@ -98,8 +98,8 @@ end
 check.eq("superb item", widget("superb").text, "Superb")
 check.eq("clock realm", widget("clock").text, "Thu 6 Nov  13:05")
 check.eq("gold", widget("gold").text, "COIN123456")
--- Bag space: Blizzard's bag atlas, a little taller than the text, then the free slots.
-check.eq("bags", widget("bags").text, "|A:bag-main:16:16|a 7 free")
+-- Bag space: Blizzard's square backpack icon, a little taller than the text, then the free slots.
+check.eq("bags", widget("bags").text, "|TInterface\\Icons\\INV_Misc_Bag_08:16:16:0:0:64:64:5:59:5:59|t 7 free")
 -- Bag value lives in the gold tooltip, not on the bar.
 -- Vendor 2x100 + 5000 + 5x20 = 5300. Best: junk 200, sword 5000 (bound), cloth max(100, 1500) = 6700.
 check.eq("no bag value item", widget("bagvalue"), nil)
@@ -133,9 +133,9 @@ check.eq("gold back", gold:IsShown(), true)
 -- Bag changes are batched: one refresh after the timer.
 S.bags[1].items[1] = { itemID = 1, stackCount = 1, quality = 0, hyperlink = "[Junk]", isBound = false, hasNoValue = false }
 M.fire("BAG_UPDATE_DELAYED")
-check.eq("bags not yet refreshed", widget("bags").text, "|A:bag-main:16:16|a 7 free")
+check.eq("bags not yet refreshed", widget("bags").text, "|TInterface\\Icons\\INV_Misc_Bag_08:16:16:0:0:64:64:5:59:5:59|t 7 free")
 M.runTimers()
-check.eq("bags refreshed", widget("bags").text, "|A:bag-main:16:16|a 6 free")
+check.eq("bags refreshed", widget("bags").text, "|TInterface\\Icons\\INV_Misc_Bag_08:16:16:0:0:64:64:5:59:5:59|t 6 free")
 check.eq("one timer for both", #M.timers, 0)
 
 -- Missing item info: requested, then refreshed when it arrives.
@@ -306,7 +306,7 @@ for slot = 4, 4 do S.bags[0].items[slot] = { itemID = 3, stackCount = 1, quality
 M.time = M.time + 0.1
 M.fire("BAG_UPDATE_DELAYED")
 M.runTimers()
-check.ok("bags full text", widget("bags").text:find("|a 0 free$") ~= nil)
+check.ok("bags full text", widget("bags").text:find("|t 0 free$") ~= nil)
 check.eq("at most three toasts", #toasts(), 3)
 check.eq("bags full toast newest", toasts()[1].title.text, "Bags full")
 
