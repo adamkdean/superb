@@ -155,7 +155,8 @@ function M.install()
   function GetTime() return M.time end
   -- UI units per physical pixel: 768 / screen height (Blizzard_SharedXML/PixelUtil.lua).
   PixelUtil = { GetPixelToUIUnitFactor = function() return M.pixelFactor or 0.5 end }
-  date = os.date
+  -- Local time is pinned to Thu 6 Nov 2026 13:05, like the realm time below, so clock tests pass at any hour.
+  date = function(fmt, t) return os.date(fmt, t or os.time({ year = 2026, month = 11, day = 6, hour = 13, min = 5 })) end
   unpack = table.unpack  -- a global in the game's Lua 5.1
   function GetServerTime() return M.serverBase + math.floor(M.time) end
   function GetSessionTime() return S.session end
