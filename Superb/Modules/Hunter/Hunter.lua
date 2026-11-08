@@ -129,7 +129,7 @@ def = {
     w.label:SetPoint("LEFT", S:Theme().pad + ICON + 4, 0)
     w.icon = w:CreateTexture(nil, "ARTWORK")
     w.icon:SetSize(ICON, ICON)
-    w.icon:SetPoint("LEFT", S:Theme().pad, 0)
+    w.icon:SetPoint("LEFT", S:Theme().pad, 1) -- 1 up, level with the text
     for _, e in ipairs({ "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_LEVEL" }) do pcall(w.RegisterUnitEvent, w, e, "pet") end
     last.food = Pet.CountFood(foodInBags())
   end,

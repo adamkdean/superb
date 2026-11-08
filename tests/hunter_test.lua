@@ -32,6 +32,7 @@ check.eq("secure template", w.template, "SecureActionButtonTemplate")
 check.eq("text", M.plain(w.text), "Temporary | 10 (30%) | |cff4de64dHappy|r")
 check.eq("no health on the bar", w.hp, nil)
 check.eq("portrait", w.icon.portrait, "pet")
+check.eq("portrait level with the text", w.icon.points.LEFT.y, 1)
 check.eq("no health line", w.line, nil)
 check.eq("in the centre, first", w.points.LEFT.relPoint, "CENTER")
 
