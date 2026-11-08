@@ -5,7 +5,7 @@ local S = Superb
 local HEIGHT = 2
 local XP_COLOUR = { 0.62, 0.36, 1.0, 1 }
 local RESTED_XP_COLOUR = { 0.25, 0.55, 1.0, 1 }
-local RESTED_COLOUR = { 0.25, 0.55, 1.0, 0.55 }
+local RESTED_COLOUR = { 0.25, 0.55, 1.0, 0.25 } -- faint, so the rested part stands apart from the blue fill
 local track, rested, fill
 
 local function place(tex, top, width)

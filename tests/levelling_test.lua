@@ -33,9 +33,10 @@ check.eq("xp text", M.plain(xpW.text), "Lv 23 | 40% | 15% rested")
 local fill, restedTex
 for _, t in ipairs(M.textures) do
   if t.colour and t.colour[4] == 1 and (t.colour[1] == 0.62 or t.colour[1] == 0.25) then fill = t end
-  if t.colour and t.colour[4] == 0.55 then restedTex = t end
+  if t.colour and t.colour[4] < 1 and t.colour[1] == 0.25 then restedTex = t end
 end
 check.ok("xp line textures", fill and restedTex)
+check.ok("rested shade faint next to the blue fill", restedTex.colour[4] <= 0.3)
 check.eq("rested: blue fill", fill.colour[1] .. "," .. fill.colour[2], "0.25,0.55")
 S.rested = 0
 Superb:Refresh("levelling.xpline")
