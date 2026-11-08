@@ -93,12 +93,12 @@ S:RegisterModule({
     return false
   end,
 
-  -- The bag atlas Blizzard's own backpack button uses (Blizzard_MainMenuBarBagButtons/Mainline/MainMenuBarBagButtons.lua),
-  -- in atlas markup (Blizzard_SharedXMLBase/TextureUtil.lua, CreateAtlasMarkup).
+  -- The square backpack icon Blizzard's own bag frame uses (Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua,
+  -- SetPortraitToAsset), cropped from 64 to 54 pixels to drop the icon's own border.
   Text = function()
     local s = current()
     local size = S:Theme().size + 2
-    return ("|A:bag-main:%d:%d|a %d free"):format(size, size, s.free)
+    return ("|TInterface\\Icons\\INV_Misc_Bag_08:%d:%d:0:0:64:64:5:59:5:59|t %d free"):format(size, size, s.free)
   end,
 
   Tooltip = function(_, tip)
