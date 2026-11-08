@@ -1,4 +1,4 @@
--- Superb, hunter module: a pet item for the Superb bar. Shows the pet's name, level, mood, health and food; feeds it or
+-- Superb, hunter module: a pet item for the Superb bar. Shows the pet's name, level and XP, mood, and low food; feeds it or
 -- casts Mend Pet on a click; warns when it is unhappy, low on food, gains loyalty or dies. Everything is set in
 -- its menu (Shift+right-click on the item).
 local _, ns = ...
@@ -10,7 +10,7 @@ local MEND_PET = "Mend Pet"       -- by name: its spell ID on Forever is not in 
 local ICON = 16
 
 local DEFAULTS = {
-  show = { name = true, level = true, mood = true, health = true, food = true },
+  show = { name = true, level = true, xp = true, mood = true, food = true },
   tip = { xp = true, loyalty = true, foods = true },
   left = "feed", right = "mend", foodMode = "lowest", lowFood = 5,
 }
@@ -164,19 +164,21 @@ def = {
     local happiness = mood()
     local parts = {}
     local name, level = plain(UnitName("pet")), plain(UnitLevel("pet"))
-    if c.name and name then parts[#parts + 1] = c.level and level and ("%s %d"):format(name, level) or name
-    elseif c.level and level then parts[#parts + 1] = "Lv " .. level end
+    if c.name and name then parts[#parts + 1] = name end
+    if c.level and level then
+      local lv = (c.name and name) and tostring(level) or ("Lv " .. level)
+      local xp, need = GetPetExperience()
+      xp, need = plain(xp), plain(need)
+      parts[#parts + 1] = (c.xp and xp and need and need > 0) and ("%s (%d%%)"):format(lv, F.Percent(xp, need)) or lv
+    end
     if c.mood and happiness and Pet.MOODS[happiness] then
       local m = Pet.MOODS[happiness]
       parts[#parts + 1] = F.Colour(m.name, m.r, m.g, m.b)
     end
-    if c.food then
-      local foods = foodInBags()
-      local total = Pet.CountFood(foods)
-      local food = chosenFood(foods)
-      parts[#parts + 1] = food and food.icon and ("|T%d:0|t%d"):format(food.icon, total) or ("food %d"):format(total)
+    if c.food and Pet.CountFood(foodInBags()) < cfg().lowFood then
+      parts[#parts + 1] = F.Colour("Low food", 1, 0.6, 0.1)
     end
-    return table.concat(parts, F.SEP) -- health is drawn after it, by S:ShowHealth
+    return table.concat(parts, F.SEP)
   end,
 
   OnRefresh = function(w, enabled)
@@ -184,7 +186,6 @@ def = {
     local on = enabled and hasPet()
     if on then SetPortraitTexture(w.icon, "pet") end
     w.icon:SetShown(on and true or false)
-    S:ShowHealth(w, "pet", on and cfg().show.health)
   end,
 
   Tooltip = function(_, tip)
@@ -228,8 +229,8 @@ def = {
     local bar = root:CreateButton("Bar shows")
     local function isShow(k) return c.show[k] end
     local function toggleShow(k) c.show[k] = not c.show[k] S:Refresh(ID) end
-    for _, k in ipairs({ "name", "level", "mood", "health", "food" }) do
-      local labels = { name = "Name", level = "Level", mood = "Mood", health = "Health", food = "Food count" }
+    for _, k in ipairs({ "name", "level", "xp", "mood", "food" }) do
+      local labels = { name = "Name", level = "Level", xp = "Pet XP, after the level", mood = "Mood", food = "Low food" }
       bar:CreateCheckbox(labels[k], isShow, toggleShow, k)
     end
     local tipMenu = root:CreateButton("Tooltip shows")
