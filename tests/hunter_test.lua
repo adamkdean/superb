@@ -28,9 +28,9 @@ end
 local w, def = find("hunter.pet")
 check.ok("pet item for a hunter", w ~= nil)
 check.eq("secure template", w.template, "SecureActionButtonTemplate")
-check.eq("text", M.plain(w.text), "Temporary 10 | |cff4de64dHappy|r | |T111:0|t6") -- icon of the food it will use
-check.eq("health drawn by the game, as a percent", M.plain(w.hp.text), " | SECRET%")
-check.eq("room for full health", w.rightInset, #(Superb:Separator(w.label) .. "100%") * 7)
+-- Name, level with pet XP, mood. Food shows only when low (6 here, warning under 5). No health: the unit frames show it.
+check.eq("text", M.plain(w.text), "Temporary | 10 (30%) | |cff4de64dHappy|r")
+check.eq("no health on the bar", w.hp, nil)
 check.eq("portrait", w.icon.portrait, "pet")
 check.eq("no health line", w.line, nil)
 check.eq("in the centre, first", w.points.LEFT.relPoint, "CENTER")
@@ -60,9 +60,13 @@ end
 w.scripts.OnLeave(w)
 
 -- Menu settings.
-M.find(M.menu, "Health").select()
-check.eq("health hidden", w.hp.shown, false)
-check.eq("no room kept for it", w.rightInset, 0)
+check.eq("no health option", M.find(M.menu, "Health"), nil)
+M.find(M.menu, "Pet XP, after the level").select()
+check.eq("xp hidden", M.plain(w.text), "Temporary | 10 | |cff4de64dHappy|r")
+M.find(M.menu, "Name").select()
+check.eq("level alone", M.plain(w.text), "Lv 10 | |cff4de64dHappy|r")
+M.find(M.menu, "Name").select()
+M.find(M.menu, "Pet XP, after the level").select()
 M.find(M.menu, "Highest level").select()
 check.eq("highest food", w.attributes.macrotext1, "/cast Feed Pet\n/use 1 2")
 local leftMenu = M.find(M.menu, "Left-click")
@@ -75,12 +79,10 @@ w.scripts.OnLeave(w)
 check.eq("no health line option", M.find(M.menu, "Health line"), nil)
 
 -- Combat: health turns secret, nothing on the secure item moves or changes attributes, catch-up afterwards.
-M.find(M.menu, "Health").select()
 S.lockdown = true
 M.blocked = 0
 M.fire("UNIT_HEALTH", "pet")
 check.eq("secret health not in the label", w.text:find("SECRET", 1, true), nil)
-check.eq("health still drawn in combat", M.plain(w.hp.text), " | SECRET%")
 S.bags[1].items[2] = nil
 M.fire("BAG_UPDATE_DELAYED")
 check.eq("no blocked calls in combat", M.blocked, 0)
@@ -123,6 +125,7 @@ S.bags[1].items[1] = { itemID = 20, stackCount = 2, quality = 1, hyperlink = "[O
 M.time = M.time + 1
 M.fire("BAG_UPDATE_DELAYED")
 check.eq("low food warning", newest().title.text, "Pet food low")
+check.eq("low food on the bar", M.plain(w.text), "Temporary | 10 (30%) | |cffffd100Content|r | |cffff991aLow food|r")
 check.eq("low food is a warning", M.sounds[#M.sounds].path, "Interface\\AddOns\\Superb\\Sounds\\warning.ogg")
 S.pet.dead = true
 M.time = M.time + 1
