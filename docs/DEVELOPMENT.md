@@ -35,7 +35,7 @@ The full list of module fields, including `tick`, `OnRefresh` and secure items t
 ```text
 Superb/              the addon, shipped as-is into Interface/AddOns
   Core.lua           the bar, module API, layout, menus, slash command
-  Modules/           clock, gold, bags, durability, performance, location
+  Modules/           clock, gold, bags, durability, performance, location, professions
   Modules/Levelling/ levelling items
   Modules/Hunter/    hunter pet item
   Modules/Warlock/   warlock demon item

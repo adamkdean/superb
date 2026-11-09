@@ -24,6 +24,7 @@ M.state = {
   zone = "Elwynn Forest", subzone = "Goldshire", mapPos = { 0.4213, 0.6578 },
   durability = { [1] = { 80, 100 }, [5] = { 30, 60 }, [16] = { 100, 100 } },
   newMail = false, mailSenders = { "Alice" },
+  professions = {},  -- by GetProfessions slot (1, 2 primary; 3 to 7 secondary): { name, icon, rank, max, skillLine }
   pet = nil,  -- set to { name, level, family, happiness, damage, rate, loyalty, hp, hpMax, dead, xp, xpNeed, diet, eats }
 }
 
@@ -292,6 +293,14 @@ function M.install()
   function HasNewMail() return S.newMail end
   function GetLatestThreeSenders() return table.unpack(S.mailSenders) end
   function ToggleWorldMap() M.mapToggled = (M.mapToggled or 0) + 1 end
+  function GetProfessions()
+    local function at(i) return S.professions[i] and i or nil end
+    return at(1), at(2), at(3), at(4), at(5), at(6), at(7)
+  end
+  function GetProfessionInfo(i)
+    local p = S.professions[i]
+    if p then return p.name, p.icon, p.rank, p.max, 0, 0, p.skillLine, 0 end
+  end
 
   GameTooltip = { lines = {} }
   function GameTooltip:SetOwner(owner) self.owner = owner self.lines = {} end
@@ -386,7 +395,7 @@ end
 
 -- Superb is one addon. Tests load the core, then the modules they need, into one shared namespace.
 M.CORE_FILES = { "Format.lua", "Arrange.lua", "Themes.lua", "Core.lua", "Notify.lua", "Modules/Clock.lua", "Modules/Gold.lua",
-  "Modules/Bags.lua", "Modules/Durability.lua", "Modules/Performance.lua", "Modules/Location.lua" }
+  "Modules/Bags.lua", "Modules/Durability.lua", "Modules/Performance.lua", "Modules/Location.lua", "Modules/Professions.lua" }
 M.LEVELLING_FILES = { "Modules/Levelling/Stats.lua", "Modules/Levelling/Levelling.lua", "Modules/Levelling/XPLine.lua" }
 M.HUNTER_FILES = { "Modules/Hunter/Pet.lua", "Modules/Hunter/Hunter.lua" }
 M.WARLOCK_FILES = { "Modules/Warlock/Warlock.lua" }
