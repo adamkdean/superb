@@ -18,6 +18,8 @@ M.state = {
     [1] = { slots = 6, items = {} },
   },
   sellPrice = { [1] = 100, [2] = 5000, [3] = 20 },
+  itemInstant = {},  -- by item ID: { subType, icon, classID, subClassID } for C_Item.GetItemInfoInstant
+  ammo = nil,        -- the ammo slot: { icon, count }
   fps = 59.6, latencyHome = 40, latencyWorld = 45,
   zone = "Elwynn Forest", subzone = "Goldshire", mapPos = { 0.4213, 0.6578 },
   durability = { [1] = { 80, 100 }, [5] = { 30, 60 }, [16] = { 100, 100 } },
@@ -249,8 +251,14 @@ function M.install()
     end,
     GetContainerItemInfo = function(bag, slot) return S.bags[bag] and S.bags[bag].items[slot] end,
     GetBagName = function(bag) return "Bag" .. bag end,
+    ContainerIDToInventoryID = function(bag) return 100 + bag end,  -- a stub numbering: bag n is slot 100 + n
   }
+  Enum = { ItemClass = { Quiver = 11 } }
   C_Item = {
+    GetItemInfoInstant = function(id)
+      local i = S.itemInstant[id]
+      if i then return id, "Type", i.subType, "INVTYPE_BAG", i.icon, i.classID, i.subClassID end
+    end,
     GetItemInfo = function(id)
       local p = S.sellPrice[id]
       if p == nil then return nil end
@@ -272,9 +280,15 @@ function M.install()
     GetBestMapForUnit = function() return S.mapPos and 1429 or nil end,
     GetPlayerMapPosition = function() local p = S.mapPos return p and { GetXY = function() return p[1], p[2] end } end,
   }
-  INVSLOT_FIRST_EQUIPPED, INVSLOT_LAST_EQUIPPED = 1, 19
+  INVSLOT_FIRST_EQUIPPED, INVSLOT_LAST_EQUIPPED, INVSLOT_AMMO = 1, 19, 0
   function GetInventoryItemDurability(slot) local d = S.durability[slot] if d then return d[1], d[2] end end
   function GetInventoryItemLink(_, slot) return "[Item" .. slot .. "]" end
+  -- The ammo slot (0) and equipped bags (100 + bag): S.ammo = { icon, count }, S.bags[n].bagItem = item ID.
+  function GetInventoryItemID(_, slot)
+    if slot >= 100 then local b = S.bags[slot - 100] return b and b.bagItem end
+  end
+  function GetInventoryItemTexture(_, slot) if slot == INVSLOT_AMMO then return S.ammo and S.ammo.icon end end
+  function GetInventoryItemCount(_, slot) if slot == INVSLOT_AMMO then return S.ammo and S.ammo.count or 0 end end
   function HasNewMail() return S.newMail end
   function GetLatestThreeSenders() return table.unpack(S.mailSenders) end
   function ToggleWorldMap() M.mapToggled = (M.mapToggled or 0) + 1 end

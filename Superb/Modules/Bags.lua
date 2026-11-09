@@ -1,10 +1,11 @@
--- Superb module: bag space, and the bag value shown in the gold tooltip. One scan of the bags serves both.
+-- Superb module: bag space, an item for each kind of special bag (ammo, soul, herb and so on), and the bag value
+-- shown in the gold tooltip. One scan of the bags serves all three.
 -- Auction prices come from AuctionDB when it is loaded (read only; its methods are not a declared API,
 -- so every call is wrapped and checked here, in one place).
 local _, ns = ...
 local S, F = Superb, Superb.Format
 
-local scan = { free = 0, total = 0, bags = {}, vendor = 0, junk = 0, auction = 0, best = 0, priced = 0, items = {}, missing = false }
+local scan = { free = 0, total = 0, bags = {}, special = {}, vendor = 0, junk = 0, auction = 0, best = 0, priced = 0, items = {}, missing = false }
 local dirty = true
 local scanned = false
 
@@ -22,20 +23,45 @@ end
 
 local function hasAuctionDB() return type(_G.AuctionDB) == "table" and type(_G.AuctionDB.LastPrice) == "function" end
 
+-- The kind of a special bag, from the bag item itself: quivers and ammo pouches (Enum.ItemClass.Quiver) are one
+-- kind, "ammo"; other bags go by their container subclass (Enum.ItemContainerSubclass: Soul, Herb, Enchanting...)
+-- and take the game's own name for it. Bag 0, the backpack, is always a general bag, so it never comes here.
+local function specialKind(s, bag)
+  local id = GetInventoryItemID("player", C_Container.ContainerIDToInventoryID(bag))
+  if not id then return end
+  local _, _, subType, _, icon, classID, subClassID = C_Item.GetItemInfoInstant(id)
+  local key, name = "container" .. subClassID, subType
+  if classID == Enum.ItemClass.Quiver then key, name = "ammo", "Ammo" end
+  local k = s.special[key]
+  if not k then
+    k = { name = name, icon = icon, free = 0, slots = 0, bags = {}, items = {}, byItem = {} }
+    s.special[key] = k
+  end
+  return k
+end
+
 local function rescan()
   dirty = false
-  local s = { free = 0, total = 0, bags = {}, vendor = 0, junk = 0, auction = 0, best = 0, priced = 0, items = {}, missing = false }
+  local s = { free = 0, total = 0, bags = {}, special = {}, vendor = 0, junk = 0, auction = 0, best = 0, priced = 0, items = {}, missing = false }
   local byItem = {}
   for bag = 0, lastBag() do
     local slots = C_Container.GetContainerNumSlots(bag) or 0
     if slots > 0 then
       local free, family = C_Container.GetContainerNumFreeSlots(bag)
       free = free or 0
+      local bagInfo = { name = C_Container.GetBagName(bag) or ("Bag " .. bag), free = free, slots = slots }
+      local kind
       -- Family 0 is a general bag (Blizzard_StoreUI, MainMenuBarBagButtons). Any other family (quiver, ammo pouch,
       -- soul or reagent bag) holds only its own kind of item, so its slots are not bag space.
       if (family or 0) == 0 then
         s.free, s.total = s.free + free, s.total + slots
-        s.bags[#s.bags + 1] = { name = C_Container.GetBagName(bag) or ("Bag " .. bag), free = free, slots = slots }
+        s.bags[#s.bags + 1] = bagInfo
+      else
+        kind = specialKind(s, bag)
+        if kind then
+          kind.free, kind.slots = kind.free + free, kind.slots + slots
+          kind.bags[#kind.bags + 1] = bagInfo
+        end
       end
       for slot = 1, slots do
         local info = C_Container.GetContainerItemInfo(bag, slot)
@@ -61,11 +87,21 @@ local function rescan()
             s.items[#s.items + 1] = e
           end
           e.count, e.vendor, e.auction = e.count + count, e.vendor + vendor, e.auction + auction
+          if kind then
+            local c = kind.byItem[info.itemID]
+            if not c then
+              c = { link = info.hyperlink, icon = info.iconFileID, count = 0 }
+              kind.byItem[info.itemID] = c
+              kind.items[#kind.items + 1] = c
+            end
+            c.count = c.count + count
+          end
         end
       end
     end
   end
   table.sort(s.items, function(a, b) return math.max(a.vendor, a.auction) > math.max(b.vendor, b.auction) end)
+  for _, k in pairs(s.special) do table.sort(k.items, function(a, b) return a.count > b.count end) end
   local before = scan.free
   scan = s
   if scanned and before > 0 and s.free == 0 and s.total > 0 then
@@ -79,6 +115,69 @@ local function current()
   return scan
 end
 
+-- Special bags ------------------------------------------------------------------------------------------------
+
+local ICON = "|T%s:%d:%d:0:0:64:64:5:59:5:59|t %s"  -- the icon cropped to drop its border, then the text
+
+-- The item for one kind of special bag. Ammo shows the equipped ammo counted in every bag, as the character
+-- frame's ammo slot does (Blizzard_UIPanels_Game/Camelot/PaperDollFrame.lua); other kinds show used/total slots.
+local function specialItem(key, name)
+  local ammo = key == "ammo"
+  return {
+    id = "bags." .. key, name = name, side = "right", order = 41,
+    events = ammo and { "PLAYER_EQUIPMENT_CHANGED" } or nil,  -- other ammo put in the ammo slot
+
+    Text = function()
+      local k = current().special[key]
+      if not k then return nil end
+      local size = S:Theme().size + 2
+      if ammo then
+        local icon = GetInventoryItemTexture("player", INVSLOT_AMMO)
+        local count = icon and GetInventoryItemCount("player", INVSLOT_AMMO) or 0
+        return ICON:format(icon or k.icon, size, size, F.Thousands(count))
+      end
+      local top = k.items[1]  -- the item with the most inside, or the bag's own icon when it is empty
+      return ICON:format(top and top.icon or k.icon, size, size, ("%d/%d"):format(k.slots - k.free, k.slots))
+    end,
+
+    Tooltip = function(_, tip)
+      local k = current().special[key]
+      if not k then return end
+      tip:AddLine(name, 1, 1, 1)
+      if ammo then
+        if GetInventoryItemTexture("player", INVSLOT_AMMO) then
+          tip:AddDoubleLine(GetInventoryItemLink("player", INVSLOT_AMMO) or "Ammo",
+            F.Thousands(GetInventoryItemCount("player", INVSLOT_AMMO) or 0), nil, nil, nil, 1, 1, 1)
+        else
+          tip:AddLine("No ammo in the ammo slot.", 0.6, 0.6, 0.6)
+        end
+      else
+        for i = 1, math.min(10, #k.items) do
+          tip:AddDoubleLine(k.items[i].link, F.Thousands(k.items[i].count), nil, nil, nil, 1, 1, 1)
+        end
+      end
+      for _, b in ipairs(k.bags) do
+        tip:AddDoubleLine(b.name, ("%d / %d used"):format(b.slots - b.free, b.slots), 0.8, 0.8, 0.8, 1, 1, 1)
+      end
+      tip:AddLine(" ")
+      tip:AddLine("Left-click: open bags.", 0.6, 0.6, 0.6)
+    end,
+
+    OnClick = function()
+      if ToggleAllBags then ToggleAllBags() end
+    end,
+  }
+end
+
+-- An item for each kind of special bag, registered the first time one is seen. Never called during a refresh:
+-- registering makes the item at once, and Core may be walking the module list.
+local kinds = {}
+local function addKinds()
+  for key, k in pairs(current().special) do
+    if not kinds[key] then kinds[key] = S:RegisterModule(specialItem(key, k.name)) end
+  end
+end
+
 local pending = false
 local function markDirty()
   dirty = true
@@ -86,7 +185,9 @@ local function markDirty()
   pending = true
   C_Timer.After(0.5, function()
     pending = false
+    addKinds()
     S:Refresh("bags")
+    for _, def in pairs(kinds) do S:Refresh(def) end
   end)
 end
 
@@ -97,6 +198,8 @@ S:RegisterModule({
     if event == "BAG_UPDATE_DELAYED" or scan.missing then markDirty() end
     return false
   end,
+  -- Runs while Core makes the items at login, so the special bag items come a frame later.
+  OnLoad = function() C_Timer.After(0, addKinds) end,
 
   -- The square backpack icon Blizzard's own bag frame uses (Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua,
   -- SetPortraitToAsset), cropped from 64 to 54 pixels to drop the icon's own border.
