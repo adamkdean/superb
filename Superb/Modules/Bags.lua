@@ -29,9 +29,14 @@ local function rescan()
   for bag = 0, lastBag() do
     local slots = C_Container.GetContainerNumSlots(bag) or 0
     if slots > 0 then
-      local free = C_Container.GetContainerNumFreeSlots(bag) or 0
-      s.free, s.total = s.free + free, s.total + slots
-      s.bags[#s.bags + 1] = { name = C_Container.GetBagName(bag) or ("Bag " .. bag), free = free, slots = slots }
+      local free, family = C_Container.GetContainerNumFreeSlots(bag)
+      free = free or 0
+      -- Family 0 is a general bag (Blizzard_StoreUI, MainMenuBarBagButtons). Any other family (quiver, ammo pouch,
+      -- soul or reagent bag) holds only its own kind of item, so its slots are not bag space.
+      if (family or 0) == 0 then
+        s.free, s.total = s.free + free, s.total + slots
+        s.bags[#s.bags + 1] = { name = C_Container.GetBagName(bag) or ("Bag " .. bag), free = free, slots = slots }
+      end
       for slot = 1, slots do
         local info = C_Container.GetContainerItemInfo(bag, slot)
         if info and info.itemID then
