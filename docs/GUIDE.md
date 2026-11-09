@@ -8,7 +8,7 @@ Everything Superb puts on the bar, what each item tells you, and how to set it u
 |---|---|
 | Click **Superb** at the left end of the bar | Open the menu: position, theme, items, notifications |
 | Right-click an empty part of the bar | Open the same menu |
-| Right-click an item | Open that item's own options |
+| Right-click an item | Open that item's own options, and **Hide** to take it off the bar. **Modules** in the menu brings it back |
 | <kbd>Shift</kbd> + drag an item | Move it to the left, centre or right of the bar. A marker shows where it lands |
 | <kbd>Shift</kbd> + right-click the hunter pet | Open the pet's options (its plain right-click casts Mend Pet) |
 
