@@ -26,3 +26,4 @@ Modules\Levelling\XPLine.lua
 Modules\Hunter\Pet.lua
 Modules\Hunter\Hunter.lua
 Modules\Warlock\Warlock.lua
+Modules\Quests\QuestArrow.lua

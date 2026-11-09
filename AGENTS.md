@@ -23,6 +23,7 @@ Superb/                    the addon, shipped as-is into Interface/AddOns
   Modules/Levelling/       levelling items (Stats.lua is pure)
   Modules/Hunter/          hunter pet item (Pet.lua is pure)
   Modules/Warlock/         warlock demon item
+  Modules/Quests/          quest arrows on nameplates
   Sounds/                  notification chimes (OGG Vorbis, 44.1 kHz, levelled to match)
 tests/                     Lua 5.4 tests, run from the repo root
   lib/check.lua            assertion helper

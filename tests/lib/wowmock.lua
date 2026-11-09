@@ -22,6 +22,9 @@ M.state = {
   ammo = nil,        -- the ammo slot: { icon, count }
   fps = 59.6, latencyHome = 40, latencyWorld = 45,
   zone = "Elwynn Forest", subzone = "Goldshire", mapPos = { 0.4213, 0.6578 },
+  nameplates = {},  -- nameplate unit token -> nameplate frame; none for a forbidden plate
+  questUnits = {},  -- nameplate unit token -> true when an active quest needs that unit
+  cvars = { nameplateShowEnemies = true },
   durability = { [1] = { 80, 100 }, [5] = { 30, 60 }, [16] = { 100, 100 } },
   newMail = false, mailSenders = { "Alice" },
   professions = {},  -- by GetProfessions slot (1, 2 primary; 3 to 7 secondary): { name, icon, rank, max, skillLine }
@@ -109,6 +112,24 @@ function Region:SetTexture(t) self.texture = t end
 function Region:SetHorizTile() end
 function Region:SetVertTile() end
 function Region:SetVertexColor() end
+function Region:SetAtlas(a) self.atlas = a end
+function Region:SetBlendMode(m) self.blendMode = m end
+-- An animation group records its animations and whether it plays.
+function Region:CreateAnimationGroup()
+  local g = { anims = {}, playing = false }
+  function g:CreateAnimation(kind)
+    local a = { kind = kind }
+    function a:SetOffset(x, y) self.offset = { x, y } end
+    function a:SetDuration(d) self.duration = d end
+    function a:SetSmoothing(s) self.smoothing = s end
+    self.anims[#self.anims + 1] = a
+    return a
+  end
+  function g:SetLooping(l) self.looping = l end
+  function g:Play() self.playing = true end
+  function g:Stop() self.playing = false end
+  return g
+end
 function Region:SetFont(f, s, flags)
   assert(type(f) == "string" and type(s) == "number" and type(flags) == "string", "SetFont arguments")
   self.font = f
@@ -165,6 +186,9 @@ function M.install()
   function GetSessionTime() return S.session end
   function GetGameTime() return S.gameHour, S.gameMinute end
   C_DateAndTime = { GetCurrentCalendarTime = function() return { weekday = 5, monthDay = 6, month = 11, year = 2026, hour = 13, minute = 5 } end }
+  C_NamePlate = { GetNamePlateForUnit = function(unit) return S.nameplates[unit] end }
+  C_QuestLog = { UnitIsRelatedToActiveQuest = function(unit) return S.questUnits[unit] and true or false end }
+  C_CVar = { GetCVarBool = function(name) return S.cvars[name] end }
   function geterrorhandler() return function(e) M.errors[#M.errors + 1] = e end end
   print = function(...) local t = {} for i = 1, select("#", ...) do t[i] = tostring((select(i, ...))) end M.printed[#M.printed + 1] = table.concat(t, " ") end
   -- Plain Lua cannot make a truth test on a value fail, as the game does for a secret, so tests check that
@@ -399,8 +423,9 @@ M.CORE_FILES = { "Format.lua", "Arrange.lua", "Themes.lua", "Core.lua", "Notify.
 M.LEVELLING_FILES = { "Modules/Levelling/Stats.lua", "Modules/Levelling/Levelling.lua", "Modules/Levelling/XPLine.lua" }
 M.HUNTER_FILES = { "Modules/Hunter/Pet.lua", "Modules/Hunter/Hunter.lua" }
 M.WARLOCK_FILES = { "Modules/Warlock/Warlock.lua" }
+M.QUEST_FILES = { "Modules/Quests/QuestArrow.lua" }
 M.ALL_FILES = {}
-for _, list in ipairs({ M.CORE_FILES, M.LEVELLING_FILES, M.HUNTER_FILES, M.WARLOCK_FILES }) do
+for _, list in ipairs({ M.CORE_FILES, M.LEVELLING_FILES, M.HUNTER_FILES, M.WARLOCK_FILES, M.QUEST_FILES }) do
   for _, f in ipairs(list) do M.ALL_FILES[#M.ALL_FILES + 1] = f end
 end
 
