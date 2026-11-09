@@ -19,6 +19,7 @@ Modules\Bags.lua
 Modules\Durability.lua
 Modules\Performance.lua
 Modules\Location.lua
+Modules\Professions.lua
 Modules\Levelling\Stats.lua
 Modules\Levelling\Levelling.lua
 Modules\Levelling\XPLine.lua

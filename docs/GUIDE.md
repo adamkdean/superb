@@ -31,6 +31,7 @@ Everything Superb puts on the bar, what each item tells you, and how to set it u
 | Next milestone | Time to your next milestone level | Every milestone with XP and time needed | |
 | Activity | Active, idle and AFK time | The split in time and percent | |
 | XP line | A thin XP line along the bar's edge, blue while rested and purple when not, with rested XP shaded | | |
+| Professions | Each profession's icon and skill. Right-click to pick which show | Each profession with its skill and cap | |
 | Hunter pet | Portrait, name, level with pet XP in percent, mood, and **Low food** when food runs low | Family, mood and damage, loyalty, diet, food, pet XP, training points | Left: Feed Pet. Right: Mend Pet |
 | Warlock demon | Portrait, name, level and health in percent | Demon type, maximum health, mana | Left: Health Funnel |
 
