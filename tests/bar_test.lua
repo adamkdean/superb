@@ -301,6 +301,9 @@ check.eq("mail toast", toasts()[1].body.text, "From Alice")
 M.fire("UPDATE_PENDING_MAIL")
 check.eq("mail once", #toasts(), 3)
 
+-- A special bag (any family but 0, here a quiver) holds only its own kind of item, so its free slots are not
+-- bag space: general bags full means "0 free" even with room in the quiver.
+S.bags[2] = { slots = 8, family = 1, items = { [1] = { itemID = 3, stackCount = 200, quality = 1, hyperlink = "[Arrow]", isBound = false, hasNoValue = false } } }
 for slot = 3, 6 do S.bags[1].items[slot] = { itemID = 3, stackCount = 1, quality = 1, hyperlink = "[Cloth]", isBound = false, hasNoValue = false } end
 for slot = 4, 4 do S.bags[0].items[slot] = { itemID = 3, stackCount = 1, quality = 1, hyperlink = "[Cloth]", isBound = false, hasNoValue = false } end
 M.time = M.time + 0.1
@@ -309,6 +312,12 @@ M.runTimers()
 check.ok("bags full text", widget("bags").text:find("|t 0 free$") ~= nil)
 check.eq("at most three toasts", #toasts(), 3)
 check.eq("bags full toast newest", toasts()[1].title.text, "Bags full")
+local bagsW = widget("bags")
+bagsW.scripts.OnEnter(bagsW)
+local bagsTip = table.concat(GameTooltip.lines, "\n")
+bagsW.scripts.OnLeave(bagsW)
+check.ok("bags tooltip: general bags only", bagsTip:find("Free = 0 of 10", 1, true) ~= nil)
+check.ok("bags tooltip: no quiver line", bagsTip:find("Bag2", 1, true) == nil)
 
 M.tick(8)
 for _, t in ipairs(toasts()) do t.scripts.OnUpdate(t) end

@@ -245,7 +245,7 @@ function M.install()
       if not b then return 0, 0 end
       local used = 0
       for _ in pairs(b.items) do used = used + 1 end
-      return b.slots - used, 0
+      return b.slots - used, b.family or 0
     end,
     GetContainerItemInfo = function(bag, slot) return S.bags[bag] and S.bags[bag].items[slot] end,
     GetBagName = function(bag) return "Bag" .. bag end,
