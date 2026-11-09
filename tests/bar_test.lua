@@ -196,6 +196,22 @@ check.ok("left click on Superb opens menu", M.find(M.menu, "Modules") ~= nil)
 check.ok("modules listed", M.find(M.menu, "Bag space") ~= nil)
 check.eq("bag value not a module", M.find(M.menu, "Bag value"), nil)
 
+-- Hide from an item's own menu. An item with no options of its own gets its name as the title.
+local bagItem = widget("bags")
+bagItem.scripts.OnClick(bagItem, "RightButton")
+check.eq("item menu title", M.menu.children[1].label, "Bag space")
+M.find(M.menu, "Hide").click()
+check.eq("hidden from its menu", SuperbDB.modules.bags.enabled, false)
+check.eq("hidden item off the bar", bagItem:IsShown(), false)
+Superb:SetEnabled(select(2, widget("bags")), true)
+check.eq("item back", bagItem:IsShown(), true)
+clock.scripts.OnClick(clock, "RightButton")
+check.eq("options first", M.menu.children[1].label, "Clock")
+check.ok("Hide after the options", M.find(M.menu, "Hide") ~= nil)
+-- The Superb item is the way into the menu, so it has no Hide (the Modules list can still turn it off).
+superb.scripts.OnClick(superb, "LeftButton")
+check.eq("no Hide on the Superb item", M.find(M.menu, "Hide"), nil)
+
 -- A module registered after login appears at once; a module error is reported once, not thrown.
 Superb:RegisterModule({ id = "late", side = "left", order = 99, Text = function() return "late" end })
 check.eq("late module shown", widget("late").text, "late")

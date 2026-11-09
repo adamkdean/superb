@@ -559,8 +559,10 @@ function S:OpenMenu(owner)
   hideTooltip()
   local def = owner and owner.def
   MenuUtil.CreateContextMenu(owner, function(_, root)
-    if def and def.Menu then
-      def.Menu(owner, root)
+    -- The item's own section: its options, then Hide. The Superb item opens the menu, so it has no Hide.
+    if def and def.id ~= "superb" then
+      if def.Menu then def.Menu(owner, root) else root:CreateTitle(def.name) end
+      root:CreateButton("Hide", function() S:SetEnabled(def, false) end)
       root:CreateDivider()
     end
     buildMenu(root)
