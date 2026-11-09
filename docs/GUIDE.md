@@ -21,6 +21,8 @@ Everything Superb puts on the bar, what each item tells you, and how to set it u
 | Clock | Date and time, local or realm | Local time, realm time, session length | Left: calendar |
 | Gold | Your gold | This session's change, each of your characters on the realm, total, what your bags are worth (vendor value, junk, auction value, most valuable items) | |
 | Bag space | A bag icon and your free slots | Free slots per bag. Quivers, ammo pouches, soul bags and profession bags hold only their own items, so they are left out | Left: open bags |
+| Ammo | With a quiver or ammo pouch on: your ammo's icon and how much of it you carry, in all your bags | The ammo in your ammo slot, slots used in each quiver or pouch | Left: open bags |
+| Soul and profession bags | One item for each kind you wear (soul bag, herb bag and so on): the icon of what fills it most, then slots used out of the total | What is inside, most first, and slots used in each bag | Left: open bags |
 | Durability | Your most worn item, orange under 50%, red under 25% | Every damaged item | |
 | Performance | Frame rate and latency | Home and world latency, network, addon memory | |
 | Location | Zone and coordinates, first of the right-hand items | Zone, area, coordinates | Left: world map |
