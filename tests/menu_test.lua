@@ -141,6 +141,27 @@ click(sub, "Minimal")
 check.eq("theme set from the menu", Superb:Theme().name, "Minimal")
 check.eq("menu stays open after a radio", menu:IsShown(), true)
 
+-- The bar's menus drop from the clicked item, not from the cursor: under it on a top bar, over it on a bottom bar.
+local function anchor()
+  local point, v = next(menu.points)
+  return point .. " to " .. v.relPoint .. " of " .. (v.rel == w and "item" or v.rel == Superb:Bar() and "bar" or "other")
+    .. " " .. v.x .. "," .. v.y
+end
+w.scripts.OnClick(w, "RightButton")
+check.eq("under the item", anchor(), "TOPLEFT to BOTTOMLEFT of item 0,0")
+Superb:SetPosition("bottom")
+w.scripts.OnClick(w, "RightButton")
+check.eq("over the item on a bottom bar", anchor(), "BOTTOMLEFT to TOPLEFT of item 0,0")
+-- A right-click on an empty part of the bar: on the bar's edge, at the pointer's place along it.
+M.cursorX = 300
+Superb:Bar().scripts.OnMouseUp(Superb:Bar(), "RightButton")
+check.eq("empty bar, bottom", anchor(), "BOTTOMLEFT to TOPLEFT of bar 300.0,0")
+Superb:SetPosition("top")
+M.uiScale = 0.5
+Superb:Bar().scripts.OnMouseUp(Superb:Bar(), "RightButton")
+check.eq("empty bar, top, in the bar's scale", anchor(), "TOPLEFT to BOTTOMLEFT of bar 600.0,0")
+M.uiScale, M.cursorX = nil, nil
+
 check.eq("no module errors", #M.errors, 0)
 for _, e in ipairs(M.errors) do io.write(e, "\n") end
 check.done()

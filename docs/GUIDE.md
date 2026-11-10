@@ -14,7 +14,7 @@ Everything Superb puts on the bar, what each item tells you, and how to set it u
 
 **Reset item positions** in the menu puts every item back where it started.
 
-The menu is flat and follows the bar's theme. A row with `>` holds a submenu: click the row to open it, and click it again to close it. Nothing opens on hover. Ticking a box or picking an option keeps the menu open, so several settings can change in one visit. A click anywhere else, or <kbd>Esc</kbd>, closes it.
+The menu is flat and follows the bar's theme. It drops from the item you clicked: under it on a top bar, over it on a bottom bar. A row with `>` holds a submenu: click the row to open it, and click it again to close it. Nothing opens on hover. Ticking a box or picking an option keeps the menu open, so several settings can change in one visit. A click anywhere else, or <kbd>Esc</kbd>, closes it.
 
 ## Items
 

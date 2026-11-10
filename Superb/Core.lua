@@ -566,6 +566,13 @@ function S:OpenMenu(owner)
       root:CreateDivider()
     end
     buildMenu(root)
+  end, function(menu)
+    -- The menu drops from the clicked item: under it on a top bar, over it on a bottom bar. With no item (an
+    -- empty part of the bar), it drops from the bar's edge at the pointer's place along it.
+    local top = S:Position() ~= "bottom"
+    local to, x = owner, 0
+    if not owner then to, x = bar, (GetCursorPosition()) / bar:GetEffectiveScale() end
+    menu:SetPoint(top and "TOPLEFT" or "BOTTOMLEFT", to, top and "BOTTOMLEFT" or "TOPLEFT", x, 0)
   end)
 end
 
