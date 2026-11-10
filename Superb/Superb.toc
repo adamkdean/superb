@@ -11,6 +11,7 @@
 Format.lua
 Arrange.lua
 Themes.lua
+Menu.lua
 Core.lua
 Notify.lua
 Modules\Clock.lua

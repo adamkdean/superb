@@ -30,11 +30,14 @@ A notification's type is `info` (the default), `good`, `warning` or `bad`. Each 
 
 The full list of module fields, including `tick`, `OnRefresh` and secure items that cast spells, is at the top of the "Module API" section in [`Superb/Core.lua`](../Superb/Core.lua).
 
+Superb draws its own menu. The `root` a `Menu` function gets has `CreateTitle`, `CreateDivider`, `CreateButton`, `CreateCheckbox` and `CreateRadio`, with the same arguments as Blizzard's menu descriptions. To make a submenu, add elements to what `CreateButton` returns. The other calls of Blizzard's menu system are not there.
+
 ## Project layout
 
 ```text
 Superb/              the addon, shipped as-is into Interface/AddOns
-  Core.lua           the bar, module API, layout, menus, slash command
+  Menu.lua           the flat context menu
+  Core.lua           the bar, module API, layout, menu contents, slash command
   Modules/           clock, gold, bags, durability, performance, location, professions
   Modules/Levelling/ levelling items
   Modules/Hunter/    hunter pet item
