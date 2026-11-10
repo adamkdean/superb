@@ -199,16 +199,19 @@ end
 
 -- API ----------------------------------------------------------------------------------------------------------
 
--- Opens a menu at the cursor. `generator(owner, root)` adds the elements to `root`.
-function Menu.Open(owner, generator)
+-- Opens a menu. `generator(owner, root)` adds the elements to `root`. `place(frame)` anchors the menu; without
+-- it, the menu opens at the cursor.
+function Menu.Open(owner, generator, place)
   Menu.Close()
   local root = describe("root")
   generator(owner, root)
   Menu.root = root
-  -- The cursor is in screen pixels from the bottom left; WorldFrame covers the screen, UIParent may not.
-  local x, y = GetCursorPosition()
-  local scale = UIParent:GetEffectiveScale()
-  show(1, root, function(f) f:SetPoint("TOPLEFT", WorldFrame, "BOTTOMLEFT", x / scale, y / scale) end)
+  show(1, root, place or function(f)
+    -- The cursor is in screen pixels from the bottom left; WorldFrame covers the screen, UIParent may not.
+    local x, y = GetCursorPosition()
+    local scale = UIParent:GetEffectiveScale()
+    f:SetPoint("TOPLEFT", WorldFrame, "BOTTOMLEFT", x / scale, y / scale)
+  end)
 end
 
 function Menu.Close()
