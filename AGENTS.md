@@ -20,7 +20,7 @@ Superb/                    the addon, shipped as-is into Interface/AddOns
   Core.lua                 bar, module API, layout, UI offset, menus, slash command
   Notify.lua               notifications API and the mail notification
   Modules/*.lua            core items: clock, gold, bags, durability, performance, location, professions
-  Modules/Levelling/       levelling items (Stats.lua is pure)
+  Modules/Levelling/       levelling items (Stats.lua is pure; Bonus.lua is the XP bonus item)
   Modules/Hunter/          hunter pet item (Pet.lua is pure)
   Modules/Warlock/         warlock demon item
   Modules/Quests/          quest arrows on nameplates

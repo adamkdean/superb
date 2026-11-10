@@ -27,6 +27,7 @@ Everything Superb puts on the bar, what each item tells you, and how to set it u
 | Performance | Frame rate and latency | Home and world latency, network, addon memory | |
 | Location | Zone and coordinates, first of the right-hand items | Zone, area, coordinates | Left: world map |
 | Level and XP | Level, XP and rested XP | XP, rested XP, time on this level, quest share, recent levels | |
+| XP bonus | Your total XP bonus (rested, food and other buffs) and the time until the first one ends | Each bonus with its percent and time left, the campfire, the Camp Tent lockout | Left: eat food that gives the XP bonus |
 | XP per hour | Rate and time to the next level | Last 15 minutes, session, all time, recent sessions | |
 | Next milestone | Time to your next milestone level | Every milestone with XP and time needed | |
 | Activity | Active, idle and AFK time | The split in time and percent | |
@@ -47,6 +48,7 @@ Every item, and every section of each tooltip, can be turned off.
 - Each character keeps a history of every level: time, active time, XP from quests and deaths.
 - **Announce level-ups:** right-click **Level and XP** to tell your guild or your group when you level up, for example `(Superb) DING! {star} Level 12! Level 11 took 1h 23m (48m active).` Chat shows `{star}` as the star icon. Each character chooses its own channels, and both are on at first. Guild and group messages go only when you are in one. If Superb started tracking partway through the level, the message leaves out the time.
 - **Show XP line** in the same right-click menu turns the XP line on and off. It is the same switch as **XP line** under **Modules**.
+- **XP bonus** adds up what is on: rested (+100%, kills only) and every buff whose text gives an XP bonus, such as Well Fed from cooked food (+5%, kills only). The game does not say if these add or multiply, so Superb adds them. The campfire has no XP bonus of its own, so it is in the tooltip only: near, sitting, or camp benefits active. The game hides buffs from addons in combat, so the item keeps counting down from what it last saw. A left click eats the first food in your bags whose text gives the XP bonus; the tooltip names it. Superb finds bonuses and food by their English text, so this item needs an English client. **Warning:** a buff's XP bonus ended.
 - Type `/played` once in a session to add played time to the tooltip. Superb never asks the game for it, so your chat stays clean.
 
 ## Hunter pet
@@ -66,7 +68,7 @@ Every item, and every section of each tooltip, can be turned off.
 
 ## Notifications
 
-Small cards drop from the bar for new mail, full bags, repairs, level-up summaries, the four pet warnings and the demon warning. Turn each kind on or off under **Notifications** in the menu. **Show a test notification** shows you one in the current theme.
+Small cards drop from the bar for new mail, full bags, repairs, level-up summaries, an XP bonus that ends, the four pet warnings and the demon warning. Turn each kind on or off under **Notifications** in the menu. **Show a test notification** shows you one in the current theme.
 
 Each card has a type, and each type has its own short, soft chime:
 
@@ -74,7 +76,7 @@ Each card has a type, and each type has its own short, soft chime:
 |---|---|---|
 | Info | One soft pop | New mail, test cards |
 | Good | Two notes going up | Level-up summary, pet loyalty up |
-| Warning | The same note twice | Bags full, repair soon, pet unhappy, pet food low |
+| Warning | The same note twice | Bags full, repair soon, XP bonus ended, pet unhappy, pet food low |
 | Bad | Two low notes going down | Item broken, pet died, demon died |
 
 When several cards arrive together, the chime plays once, unless a later card is more serious. Chimes play on the game's master volume. Untick **Play sounds** under **Notifications** to turn them off.

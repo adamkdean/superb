@@ -28,6 +28,8 @@ M.state = {
   durability = { [1] = { 80, 100 }, [5] = { 30, 60 }, [16] = { 100, 100 } },
   newMail = false, mailSenders = { "Alice" },
   professions = {},  -- by GetProfessions slot (1, 2 primary; 3 to 7 secondary): { name, icon, rank, max, skillLine }
+  auras = {},  -- player auras by spell ID: { name, applications, expirationTime, tip, harmful }
+  aurasSecret = false,  -- aura data restricted out of combat
   pet = nil,  -- set to { name, level, family, happiness, damage, rate, loyalty, hp, hpMax, dead, xp, xpNeed, diet, eats }
 }
 
@@ -246,6 +248,30 @@ function M.install()
   function GetMaxPlayerLevel() return S.maxLevel end
   function GetXPExhaustion() return S.rested end
   function IsResting() return S.resting end
+  -- Aura data is restricted in combat (SecretWhenUnitAuraRestricted, RequiresNonSecretAura). What the call then
+  -- returns is not proved in game; the stub gives nil in combat, the worst case for an addon that trusts it.
+  C_UnitAuras = { GetAuraDataByIndex = function(_, index, filter)
+    if S.lockdown then return nil end
+    local ids = {}
+    for id, a in pairs(S.auras) do if (a.harmful and "HARMFUL" or "HELPFUL") == filter then ids[#ids + 1] = id end end
+    table.sort(ids)
+    local a = S.auras[ids[index]]
+    if not a then return nil end
+    if S.aurasSecret then return "SECRET" end
+    a.spellId, a.auraInstanceID = ids[index], ids[index]
+    return a
+  end }
+  -- Tooltip text: a buff's is its name, then its `tip`; a bag item's is its `tip`.
+  C_TooltipInfo = {
+    GetUnitBuffByAuraInstanceID = function(_, instance)
+      local a = S.auras[instance]
+      return { lines = { { leftText = a.name }, { leftText = a.tip } } }
+    end,
+    GetBagItem = function(bag, slot)
+      local item = S.bags[bag] and S.bags[bag].items[slot]
+      if item then return { lines = { { leftText = item.hyperlink }, { leftText = item.tip } } } end
+    end,
+  }
   function IsXPUserDisabled() return S.xpDisabled end
   function UnitIsAFK() return S.afk end
   function IsPlayerMoving() return S.moving end
@@ -420,7 +446,8 @@ end
 -- Superb is one addon. Tests load the core, then the modules they need, into one shared namespace.
 M.CORE_FILES = { "Format.lua", "Arrange.lua", "Themes.lua", "Core.lua", "Notify.lua", "Modules/Clock.lua", "Modules/Gold.lua",
   "Modules/Bags.lua", "Modules/Durability.lua", "Modules/Performance.lua", "Modules/Location.lua", "Modules/Professions.lua" }
-M.LEVELLING_FILES = { "Modules/Levelling/Stats.lua", "Modules/Levelling/Levelling.lua", "Modules/Levelling/XPLine.lua" }
+M.LEVELLING_FILES = { "Modules/Levelling/Stats.lua", "Modules/Levelling/Levelling.lua", "Modules/Levelling/XPLine.lua",
+  "Modules/Levelling/Bonus.lua" }
 M.HUNTER_FILES = { "Modules/Hunter/Pet.lua", "Modules/Hunter/Hunter.lua" }
 M.WARLOCK_FILES = { "Modules/Warlock/Warlock.lua" }
 M.QUEST_FILES = { "Modules/Quests/QuestArrow.lua" }
