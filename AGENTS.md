@@ -17,7 +17,8 @@ Superb/                    the addon, shipped as-is into Interface/AddOns
   Format.lua               pure text helpers (Superb.Format)
   Arrange.lua              pure drop-zone logic for moving items (Superb.Arrange)
   Themes.lua               bar themes
-  Core.lua                 bar, module API, layout, UI offset, menus, slash command
+  Menu.lua                 the flat context menu, submenus open on a click (Superb.Menu)
+  Core.lua                 bar, module API, layout, UI offset, menu contents, slash command
   Notify.lua               notifications API and the mail notification
   Modules/*.lua            core items: clock, gold, bags, durability, performance, location, professions
   Modules/Levelling/       levelling items (Stats.lua is pure; Bonus.lua is the XP bonus item)

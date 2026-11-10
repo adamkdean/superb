@@ -78,6 +78,9 @@ end
 function Region:SetHeight(h) self.height = h end
 function Region:SetSize(w, h) self.width, self.height = w, h end
 function Region:RegisterForDrag() end
+function Region:SetClampedToScreen() end
+-- No cursor: tests set mouseOver on the frame the pointer is on.
+function Region:IsMouseOver() return self.mouseOver or false end
 -- No layout engine: tests set cx (centre x) on the items they drag around.
 function Region:GetCenter() return self.cx or 0, 0 end
 function Region:GetLeft() return 0 end
@@ -361,36 +364,15 @@ function M.install()
   function GameTooltip:Show() self.shown = true end
   function GameTooltip:Hide() self.shown = false end
 
-  MenuUtil = { CreateContextMenu = function(owner, gen) M.menu = M.buildMenu(owner, gen) end }
+  UISpecialFrames = {}
+  tinsert = table.insert
 end
 
--- A menu description that records elements and runs every callback once, as a click would.
-function M.buildMenu(owner, gen)
-  local function desc(label)
-    local d = { label = label, children = {} }
-    local function add(kind, text, a, b, data)
-      local e = desc(text)
-      e.kind = kind
-      d.children[#d.children + 1] = e
-      if kind == "radio" or kind == "checkbox" then
-        e.selected = a(data)
-        e.select = function() b(data) end
-      elseif kind == "button" and a then
-        e.click = function() a(data) end
-      end
-      return e
-    end
-    function d:CreateTitle(t) return add("title", t) end
-    function d:CreateDivider() return add("divider", "-") end
-    function d:CreateButton(t, fn, data) return add("button", t, fn, nil, data) end
-    function d:CreateRadio(t, isSel, setSel, data) return add("radio", t, isSel, setSel, data) end
-    function d:CreateCheckbox(t, isSel, setSel, data) return add("checkbox", t, isSel, setSel, data) end
-    return d
-  end
-  local root = desc("root")
-  gen(owner, root)
-  return root
-end
+-- M.menu is the menu Superb opened last: its description, with label, kind, children, and select or click on
+-- each element (Superb/Menu.lua).
+setmetatable(M, { __index = function(_, k)
+  if k == "menu" then return Superb and Superb.Menu and Superb.Menu.root end
+end })
 
 function M.find(menu, label)
   for _, e in ipairs(menu.children) do
@@ -444,7 +426,7 @@ function M.load(addon, files, ns)
 end
 
 -- Superb is one addon. Tests load the core, then the modules they need, into one shared namespace.
-M.CORE_FILES = { "Format.lua", "Arrange.lua", "Themes.lua", "Core.lua", "Notify.lua", "Modules/Clock.lua", "Modules/Gold.lua",
+M.CORE_FILES = { "Format.lua", "Arrange.lua", "Themes.lua", "Menu.lua", "Core.lua", "Notify.lua", "Modules/Clock.lua", "Modules/Gold.lua",
   "Modules/Bags.lua", "Modules/Durability.lua", "Modules/Performance.lua", "Modules/Location.lua", "Modules/Professions.lua" }
 M.LEVELLING_FILES = { "Modules/Levelling/Stats.lua", "Modules/Levelling/Levelling.lua", "Modules/Levelling/XPLine.lua",
   "Modules/Levelling/Bonus.lua" }
